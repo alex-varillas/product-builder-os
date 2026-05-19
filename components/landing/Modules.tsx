@@ -38,22 +38,7 @@ export function Modules() {
             <div className="mod-visual"><MiniCanvas /></div>
           </article>
 
-          <article className="mod-card m-tall" data-accent="violet" data-fade="" data-fade-delay="1">
-            <div className="mod-card-top">
-              <div className="mod-num">Module 02</div>
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                  <span className="mod-icon violet"><Icons.Target /></span>
-                  <span className="mod-tag">{m.m2.tag}</span>
-                </div>
-                <h3>{m.m2.title}</h3>
-                <p style={{ marginTop: 8 }}>{m.m2.desc}</p>
-              </div>
-            </div>
-            <div className="mod-visual"><MiniScope /></div>
-          </article>
-
-          <article className="mod-card m-bottom" data-accent="green" data-fade="" data-fade-delay="2">
+          <article className="mod-card m-tall" data-accent="green" data-fade="" data-fade-delay="1">
             <div className="mod-card-top">
               <div className="mod-num">Module 03</div>
               <div>
@@ -66,6 +51,21 @@ export function Modules() {
               </div>
             </div>
             <div className="mod-visual"><MiniLog /></div>
+          </article>
+
+          <article className="mod-card m-bottom" data-accent="violet" data-fade="" data-fade-delay="2">
+            <div className="mod-card-top">
+              <div className="mod-num">Module 02</div>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                  <span className="mod-icon violet"><Icons.Target /></span>
+                  <span className="mod-tag">{m.m2.tag}</span>
+                </div>
+                <h3>{m.m2.title}</h3>
+                <p style={{ marginTop: 8 }}>{m.m2.desc}</p>
+              </div>
+            </div>
+            <div className="mod-visual"><MiniScope /></div>
           </article>
         </div>
       </div>

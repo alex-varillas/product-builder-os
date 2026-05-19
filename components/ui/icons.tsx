@@ -124,4 +124,28 @@ export const Icons = {
       <path d="M9 3l1.5 4M3 9l4 1.5M4.5 4.5l3 3M12 11l9 3.5-4 2-2 4z" />
     </svg>
   ),
+  Close: (p: IconProps) => (
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" {...p}>
+      <path d="M4 4l8 8M12 4l-8 8" />
+    </svg>
+  ),
+  Pencil: (p: IconProps) => (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M4 20h4l10-10-4-4-10 10z" />
+      <path d="M13.5 6.5l4 4" />
+    </svg>
+  ),
+  Download: (p: IconProps) => (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M12 3v13M8 12l4 4 4-4" />
+      <path d="M3 19h18" />
+    </svg>
+  ),
+  LogOut: (p: IconProps) => (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+      <path d="M16 17l5-5-5-5" />
+      <path d="M21 12H9" />
+    </svg>
+  ),
 };

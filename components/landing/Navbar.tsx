@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useLanguage } from "./LanguageContext";
-import { LanguageToggle } from "./LanguageToggle";
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -47,7 +46,9 @@ export function Navbar() {
         </nav>
 
         <div className="nav-right">
-          <LanguageToggle />
+          <a className="btn btn-ghost-border nav-signin" href="/login">
+            Sign in
+          </a>
           <a className="btn btn-primary" href="#cta">
             {t.nav.startBuilding}
           </a>

@@ -10,6 +10,7 @@ import { OpenSource } from "@/components/landing/OpenSource";
 import { FinalCta } from "@/components/landing/FinalCta";
 import { Footer } from "@/components/landing/Footer";
 import { ScrollReveal } from "@/components/landing/ScrollReveal";
+import { LanguageToggle } from "@/components/landing/LanguageToggle";
 
 export default function LandingPage() {
   return (
@@ -25,6 +26,9 @@ export default function LandingPage() {
         <FinalCta />
       </main>
       <Footer />
+      <div className="lang-float">
+        <LanguageToggle />
+      </div>
     </LanguageProvider>
   );
 }

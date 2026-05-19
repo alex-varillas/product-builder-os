@@ -15,7 +15,7 @@ export function FinalCta() {
             <span className="dot" />
             {c.badge}
           </span>
-          <h2 style={{ marginTop: 22 }}>{c.h2}</h2>
+          <h2 className="h2" style={{ marginTop: 22, fontWeight: 600 }}>{c.h2}</h2>
           <p>{c.subtext}</p>
           <a className="btn btn-primary btn-xl" href="#">
             {c.cta} <Icons.Arrow />

@@ -12,7 +12,7 @@ export const translations = {
         "BoardOS is an open-source workspace for builders and founders who want to move from scattered ideas to structured products, with more clarity.",
       ctaPrimary: "Start building",
       ctaGithub: "View on GitHub",
-      proof: ["MIT licensed", "Self-host or hosted", "No account required to try"],
+      proof: ["MIT licensed", "Self-host or hosted"],
     },
     problem: {
       badge: "The problem",
@@ -83,7 +83,7 @@ export const translations = {
       docs: "Docs",
       license: "License (MIT)",
       copyright: "© 2026 BoardOS · Made for builders.",
-      status: "All systems normal",
+      status: "v0.1 · In active development",
     },
   },
 
@@ -100,7 +100,7 @@ export const translations = {
         "BoardOS es un workspace open source para builders y founders que quieren pasar de ideas dispersas a productos estructurados, con más claridad.",
       ctaPrimary: "Empezar",
       ctaGithub: "Ver en GitHub",
-      proof: ["Licencia MIT", "Self-host o hosted", "Sin cuenta para probar"],
+      proof: ["Licencia MIT", "Self-host o hosted"],
     },
     problem: {
       badge: "El problema",
@@ -172,7 +172,7 @@ export const translations = {
       docs: "Documentación",
       license: "Licencia (MIT)",
       copyright: "© 2026 BoardOS · Hecho para builders.",
-      status: "Todo en orden",
+      status: "v0.1 · En desarrollo activo",
     },
   },
 } as const;

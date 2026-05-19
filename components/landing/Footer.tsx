@@ -30,18 +30,26 @@ export function Footer() {
 
           <div className="footer-links">
             <a
-              href="https://github.com/alexvarillas/product-builder-os"
+              href="https://github.com/alex-varillas/product-builder-os"
               target="_blank"
               rel="noreferrer"
             >
               <Icons.Github />
               GitHub
             </a>
-            <a href="#">
+            <a
+              href="https://github.com/alex-varillas/product-builder-os#readme"
+              target="_blank"
+              rel="noreferrer"
+            >
               <Icons.Doc />
               {f.docs}
             </a>
-            <a href="#">
+            <a
+              href="https://github.com/alex-varillas/product-builder-os/blob/main/LICENSE"
+              target="_blank"
+              rel="noreferrer"
+            >
               <Icons.Scale />
               {f.license}
             </a>

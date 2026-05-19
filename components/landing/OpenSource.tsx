@@ -5,7 +5,7 @@ import { Icons } from "@/components/ui/icons";
 import { useLanguage } from "./LanguageContext";
 
 const SNIPPET =
-  "git clone https://github.com/alexvarillas/product-builder-os.git\nnpm install && npm run dev";
+  "git clone https://github.com/alex-varillas/product-builder-os.git\nnpm install && npm run dev";
 
 export function OpenSource() {
   const [copied, setCopied] = useState(false);
@@ -46,13 +46,18 @@ export function OpenSource() {
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
             <a
               className="btn btn-primary"
-              href="https://github.com/alexvarillas/product-builder-os"
+              href="https://github.com/alex-varillas/product-builder-os"
               target="_blank"
               rel="noreferrer"
             >
               <Icons.Github /> {os.ctaGithub} <Icons.Arrow />
             </a>
-            <a className="btn btn-secondary" href="#">
+            <a
+              className="btn btn-secondary"
+              href="https://github.com/alex-varillas/product-builder-os#readme"
+              target="_blank"
+              rel="noreferrer"
+            >
               <Icons.Doc />
               {os.ctaDocs}
             </a>
@@ -82,7 +87,7 @@ export function OpenSource() {
                 <span className="tl-dot y" />
                 <span className="tl-dot g" />
               </div>
-              <span className="ttl">~ / product-builder-os — zsh</span>
+              <span className="ttl">~ / boardos — zsh</span>
               <button
                 className={`copy-btn${copied ? " ok" : ""}`}
                 onClick={onCopy}
@@ -95,7 +100,7 @@ export function OpenSource() {
               <div>
                 <span className="p">$ </span>
                 <span className="c">
-                  git clone https://github.com/alexvarillas/product-builder-os.git
+                  git clone https://github.com/alex-varillas/product-builder-os.git
                 </span>
               </div>
               <div className="o">Cloning into &apos;product-builder-os&apos;...</div>

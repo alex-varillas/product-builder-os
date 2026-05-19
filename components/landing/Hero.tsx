@@ -41,7 +41,7 @@ export function Hero() {
           </a>
           <a
             className="btn btn-secondary btn-lg"
-            href="https://github.com/alexvarillas/product-builder-os"
+            href="https://github.com/alex-varillas/product-builder-os"
             target="_blank"
             rel="noreferrer"
           >
@@ -53,8 +53,6 @@ export function Hero() {
           <span>{h.proof[0]}</span>
           <span className="sep" />
           <span>{h.proof[1]}</span>
-          <span className="sep" />
-          <span>{h.proof[2]}</span>
         </div>
 
         <div className="hero-frame" data-fade="" data-fade-delay="5">

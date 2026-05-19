@@ -38,7 +38,7 @@ export function Navbar() {
           <a className="nav-link" href="#open-source">{t.nav.openSource}</a>
           <a
             className="nav-link"
-            href="https://github.com/alexvarillas/product-builder-os"
+            href="https://github.com/alex-varillas/product-builder-os"
             target="_blank"
             rel="noreferrer"
           >

@@ -1,0 +1,141 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-geist-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  /* shadcn vars mapped to PBOS palette */
+  --background: #FAFAF8;
+  --foreground: #1A1714;
+  --card: #FFFFFF;
+  --card-foreground: #1A1714;
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1714;
+  --primary: #F0620A;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F3EFE7;
+  --secondary-foreground: #1A1714;
+  --muted: #F3EFE7;
+  --muted-foreground: #6B6760;
+  --accent: #F3EFE7;
+  --accent-foreground: #1A1714;
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #E2DDD4;
+  --input: #E2DDD4;
+  --ring: rgba(240, 98, 10, 0.2);
+  --radius: 0.625rem;
+  --sidebar: #FAFAF8;
+  --sidebar-foreground: #1A1714;
+  --sidebar-primary: #F0620A;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F3EFE7;
+  --sidebar-accent-foreground: #1A1714;
+  --sidebar-border: #E2DDD4;
+  --sidebar-ring: rgba(240, 98, 10, 0.2);
+  --chart-1: #F0620A;
+  --chart-2: #6D28D9;
+  --chart-3: #15803D;
+  --chart-4: #6B6760;
+  --chart-5: #1A1714;
+
+  /* PBOS extended tokens */
+  --bg: #FAFAF8;
+  --bg-warm: #F3EFE7;
+  --bg-stone: #EDE8DF;
+  --card-warm: #FDFCF9;
+  --border-soft: #EEEBE4;
+  --fg: #1A1714;
+  --fg-2: #6B6760;
+  --fg-3: #A09D97;
+  --orange: #F0620A;
+  --orange-hover: #D95508;
+  --orange-soft: rgba(240, 98, 10, 0.08);
+  --orange-ring: rgba(240, 98, 10, 0.2);
+  --violet: #6D28D9;
+  --violet-soft: rgba(109, 40, 217, 0.08);
+  --green: #15803D;
+  --green-soft: rgba(21, 128, 61, 0.08);
+  --green-ring: rgba(21, 128, 61, 0.25);
+
+  /* Shape */
+  --r-btn: 12px;
+  --r-card: 22px;
+  --r-large: 28px;
+
+  /* Layout */
+  --section-y: clamp(80px, 10vw, 140px);
+  --container: 1200px;
+  --gap: 18px;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.56;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+  ::selection {
+    background: var(--orange);
+    color: #fff;
+  }
+  p, h1, h2, h3, h4 {
+    margin: 0;
+  }
+}

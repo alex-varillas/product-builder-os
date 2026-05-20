@@ -30,6 +30,7 @@
 /* ─── Typography ─── */
 .eyebrow {
   display: inline-flex;
+  align-self: flex-start;
   align-items: center;
   gap: 7px;
   font-family: var(--font-geist-mono), ui-monospace, monospace;
@@ -205,6 +206,7 @@
 .nav-right { display: flex; align-items: center; gap: 10px; }
 .nav-signin { height: 36px; padding: 0 16px; font-size: 14px; border-radius: 10px; }
 @media (max-width: 780px) {
+  .nav { grid-template-columns: 1fr auto; }
   .nav-links { display: none; }
   .nav-signin { display: none; }
 }
@@ -295,6 +297,7 @@
   max-width: 720px;
   margin: 0 auto 56px;
 }
+.section-head .eyebrow { align-self: center; }
 .section-head.left { align-items: flex-start; text-align: left; margin: 0 0 48px; }
 .section-head.left .eyebrow { align-self: flex-start; }
 
@@ -1015,6 +1018,82 @@
   font-size: 11px;
   color: var(--fg);
   line-height: 1.48;
+}
+
+/* ─── Mobile responsive ─── */
+
+/* Hero CTAs stack on very small screens */
+@media (max-width: 480px) {
+  .hero-ctas {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    max-width: 320px;
+  }
+  .hero-ctas .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Hero frame overflow safe */
+@media (max-width: 600px) {
+  .hero-frame { margin-top: 36px; }
+}
+
+/* Mosaic: already 1-col at 1000px, adjust card padding on mobile */
+@media (max-width: 600px) {
+  .mod-card-top { padding: 20px 20px 16px; }
+  .mod-card h3 { font-size: 19px; }
+  .mod-visual { padding: 12px; min-height: 160px; }
+  .m-tall .mod-visual { min-height: 260px; }
+  .m-bottom .mod-visual { min-height: 160px; }
+}
+
+/* Kanban 4-col → 2x2 on mobile */
+@media (max-width: 600px) {
+  .mnsc-board { grid-template-columns: 1fr 1fr; }
+}
+
+/* Canvas 2x2 → 1-col on very small */
+@media (max-width: 420px) {
+  .mnc-grid { grid-template-columns: 1fr; }
+}
+
+/* Steps: already 1-col at 860px */
+
+/* Open Source: already 1-col at 900px */
+@media (max-width: 600px) {
+  .terminal { font-size: 11.5px; }
+  .terminal-bar { padding: 10px 14px; }
+  .terminal-body { padding: 14px 16px; gap: 6px; }
+  .os-stats { gap: 20px; padding: 16px 0; }
+  .os-stat .n { font-size: 26px; }
+}
+
+/* Footer */
+@media (max-width: 600px) {
+  .footer-top { flex-direction: column; gap: 28px; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .footer-links { flex-wrap: wrap; gap: 8px 20px; }
+}
+
+/* Problem scatter pills */
+@media (max-width: 500px) {
+  .problem-scatter { gap: 8px; }
+  .scatter-pill { font-size: 12px; padding: 7px 12px; }
+}
+
+/* Section spacing tighter on mobile */
+@media (max-width: 600px) {
+  .section { padding: clamp(48px, 10vw, 80px) 0; }
+  .section-head { margin-bottom: 36px; gap: 14px; }
+  .h2 { font-size: clamp(28px, 7vw, 38px); }
+}
+
+/* Lang float: slightly smaller on mobile */
+@media (max-width: 600px) {
+  .lang-float { bottom: 16px; right: 16px; }
 }
 
 /* ─── Language float ─── */

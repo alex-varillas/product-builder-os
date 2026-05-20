@@ -129,7 +129,7 @@ export function HeroMockup() {
               alt="BoardOS"
               width={22}
               height={22}
-              style={{ borderRadius: 6, flexShrink: 0 }}
+              style={{ flexShrink: 0 }}
             />
             <span className="name sb-text">BoardOS</span>
           </div>

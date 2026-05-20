@@ -1,18 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { IDEA_CARDS, IdeaCard, CustomCard } from "@/lib/app-data";
 import { useAppLang } from "./AppLanguageContext";
 import { Icons } from "@/components/ui/icons";
+import { createClient } from "@/lib/supabase/client";
 
 type FixedCardId = "problem" | "user" | "solution" | "context";
+const FIXED_SLOTS: FixedCardId[] = ["problem", "user", "solution", "context"];
 
-interface BadgeOption {
-  label: string;
-  color: string;
-  bg: string;
-}
+interface BadgeOption { label: string; color: string; bg: string; }
 
 const BADGE_OPTIONS: BadgeOption[] = [
   { label: "core",       color: "#F0620A", bg: "#FEF0E8" },
@@ -22,25 +19,106 @@ const BADGE_OPTIONS: BadgeOption[] = [
   { label: "draft",      color: "#A09D97", bg: "#F3EFE7" },
   { label: "insight",    color: "#2563EB", bg: "#EFF4FF" },
 ];
+const DEFAULT_BADGE = BADGE_OPTIONS[0];
 
-interface IdeaCanvasProps {
-  addTrigger: number;
+function badgeByLabel(label: string): BadgeOption {
+  return BADGE_OPTIONS.find((b) => b.label === label) ?? DEFAULT_BADGE;
 }
 
-export function IdeaCanvas({ addTrigger }: IdeaCanvasProps) {
+function formatUpdated(iso: string): string {
+  if (!iso) return "";
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+interface FixedCard {
+  slot: FixedCardId;
+  dbId: string | null;
+  content: string;
+  badge: BadgeOption;
+  updatedAt: string;
+}
+
+interface CustomCard {
+  id: string;
+  name: string;
+  content: string;
+  badge: BadgeOption;
+  updatedAt: string;
+}
+
+interface IdeaCanvasProps {
+  projectId: string;
+  addTrigger: number;
+  onCountChange?: (count: number) => void;
+}
+
+export function IdeaCanvas({ projectId, addTrigger, onCountChange }: IdeaCanvasProps) {
   const { t } = useAppLang();
   const c = t.canvas;
+  const supabase = createClient();
 
-  const [cards,         setCards]         = useState<IdeaCard[]>(IDEA_CARDS);
-  const [customCards,   setCustomCards]   = useState<CustomCard[]>([]);
-  const [editingId,     setEditingId]     = useState<string | null>(null);
-  const [editText,      setEditText]      = useState("");
+  const [fixedCards, setFixedCards] = useState<FixedCard[]>(
+    FIXED_SLOTS.map((slot) => ({ slot, dbId: null, content: "", badge: DEFAULT_BADGE, updatedAt: "" }))
+  );
+  const [customCards, setCustomCards]   = useState<CustomCard[]>([]);
+  const [editingId,   setEditingId]     = useState<string | null>(null);
+  const [editText,    setEditText]      = useState("");
+  const [badgePopover, setBadgePopover] = useState<string | null>(null);
+
   const [showAddModal,  setShowAddModal]  = useState(false);
   const [newCardName,   setNewCardName]   = useState("");
   const [newCardText,   setNewCardText]   = useState("");
-  const [badgePopover,  setBadgePopover]  = useState<string | null>(null);
+  const [newCardBadge,  setNewCardBadge]  = useState<BadgeOption>(DEFAULT_BADGE);
 
   const handledTrigger = useRef(addTrigger);
+
+  // ─── Load ───────────────────────────────────────────────────────────────────
+
+  const loadCards = useCallback(async () => {
+    const { data } = await supabase
+      .from("canvas_cards")
+      .select("id, slot, title, content, badge, updated_at")
+      .eq("project_id", projectId)
+      .order("updated_at");
+    if (!data) return;
+
+    setFixedCards(
+      FIXED_SLOTS.map((slot) => {
+        const row = data.find((r) => r.slot === slot);
+        return {
+          slot,
+          dbId: row?.id ?? null,
+          content: row?.content ?? "",
+          badge: row ? badgeByLabel(row.badge) : DEFAULT_BADGE,
+          updatedAt: row?.updated_at ?? "",
+        };
+      })
+    );
+
+    const customs = data.filter((r) => !(FIXED_SLOTS as string[]).includes(r.slot));
+    setCustomCards(
+      customs.map((r) => ({
+        id: r.id,
+        name: r.title ?? r.slot,
+        content: r.content ?? "",
+        badge: badgeByLabel(r.badge),
+        updatedAt: r.updated_at ?? "",
+      }))
+    );
+    onCountChange?.(FIXED_SLOTS.length + customs.length);
+  }, [projectId, supabase, onCountChange]);
+
+  useEffect(() => { loadCards(); }, [loadCards]);
+
+  // ─── Trigger ────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     if (addTrigger !== handledTrigger.current) {
@@ -52,146 +130,174 @@ export function IdeaCanvas({ addTrigger }: IdeaCanvasProps) {
   const openAddModal = () => {
     setNewCardName("");
     setNewCardText("");
+    setNewCardBadge(DEFAULT_BADGE);
     setShowAddModal(true);
   };
 
-  const handleAddCard = () => {
-    if (!newCardName.trim()) return;
-    const newCard: CustomCard = {
-      id: `custom-${Date.now()}`,
-      name: newCardName.trim(),
-      text: newCardText.trim(),
-      updated: "just now",
-    };
-    setCustomCards((prev) => [...prev, newCard]);
-    setShowAddModal(false);
-  };
-
-  const isFixed = (id: string) => IDEA_CARDS.some((fc) => fc.id === id);
+  // ─── Edit ───────────────────────────────────────────────────────────────────
 
   const startEdit = (id: string, currentText: string) => {
     setEditingId(id);
     setEditText(currentText);
     setBadgePopover(null);
   };
+  const cancelEdit = () => setEditingId(null);
 
-  const saveEdit = (id: string) => {
-    if (isFixed(id)) {
-      setCards((prev) =>
-        prev.map((card) => card.id === id ? { ...card, text: editText, updated: "just now" } : card)
-      );
+  const saveEdit = async (id: string) => {
+    const isFixed = (FIXED_SLOTS as string[]).includes(id);
+    if (isFixed) {
+      const slot = id as FixedCardId;
+      const card = fixedCards.find((c) => c.slot === slot)!;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      if (card.dbId) {
+        await supabase.from("canvas_cards").update({ content: editText }).eq("id", card.dbId);
+        setFixedCards((prev) =>
+          prev.map((c) => c.slot === slot ? { ...c, content: editText, updatedAt: new Date().toISOString() } : c)
+        );
+      } else {
+        const { data } = await supabase.from("canvas_cards")
+          .insert({ user_id: user.id, project_id: projectId, slot, title: slot, content: editText, badge: card.badge.label })
+          .select("id, updated_at").single();
+        if (data) {
+          setFixedCards((prev) =>
+            prev.map((c) => c.slot === slot ? { ...c, dbId: data.id, content: editText, updatedAt: data.updated_at } : c)
+          );
+        }
+      }
     } else {
+      await supabase.from("canvas_cards").update({ content: editText }).eq("id", id);
       setCustomCards((prev) =>
-        prev.map((card) => card.id === id ? { ...card, text: editText, updated: "just now" } : card)
+        prev.map((c) => c.id === id ? { ...c, content: editText, updatedAt: new Date().toISOString() } : c)
       );
     }
     setEditingId(null);
   };
 
-  const cancelEdit = () => setEditingId(null);
+  // ─── Badge ──────────────────────────────────────────────────────────────────
 
-  const deleteCustomCard = (id: string) => {
-    setCustomCards((prev) => prev.filter((card) => card.id !== id));
-    if (editingId === id) setEditingId(null);
+  const setBadge = async (id: string, badge: BadgeOption, isFixed: boolean) => {
+    if (isFixed) {
+      const card = fixedCards.find((c) => c.slot === id);
+      if (card?.dbId) {
+        await supabase.from("canvas_cards").update({ badge: badge.label }).eq("id", card.dbId);
+      }
+      setFixedCards((prev) => prev.map((c) => c.slot === id ? { ...c, badge } : c));
+    } else {
+      await supabase.from("canvas_cards").update({ badge: badge.label }).eq("id", id);
+      setCustomCards((prev) => prev.map((c) => c.id === id ? { ...c, badge } : c));
+    }
+    setBadgePopover(null);
+  };
+
+  // ─── Custom card CRUD ────────────────────────────────────────────────────────
+
+  const handleAddCard = async () => {
+    if (!newCardName.trim()) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from("canvas_cards")
+      .insert({ user_id: user.id, project_id: projectId, slot: "custom", title: newCardName.trim(), content: newCardText.trim(), badge: newCardBadge.label })
+      .select("id, updated_at").single();
+    if (data) {
+      setCustomCards((prev) => {
+        const next = [...prev, { id: data.id, name: newCardName.trim(), content: newCardText.trim(), badge: newCardBadge, updatedAt: data.updated_at }];
+        onCountChange?.(FIXED_SLOTS.length + next.length);
+        return next;
+      });
+    }
+    setShowAddModal(false);
   };
 
   const updateCustomName = (id: string, name: string) => {
-    setCustomCards((prev) =>
-      prev.map((card) => card.id === id ? { ...card, name } : card)
-    );
+    setCustomCards((prev) => prev.map((c) => c.id === id ? { ...c, name } : c));
+  };
+  const saveCustomName = async (id: string, name: string) => {
+    await supabase.from("canvas_cards").update({ title: name }).eq("id", id);
   };
 
-  const setBadge = (cardId: string, badge: BadgeOption) => {
-    setCards((prev) =>
-      prev.map((card) => card.id === cardId ? { ...card, tag: badge } : card)
-    );
-    setBadgePopover(null);
+  const deleteCustomCard = async (id: string) => {
+    await supabase.from("canvas_cards").delete().eq("id", id);
+    setCustomCards((prev) => {
+      const next = prev.filter((c) => c.id !== id);
+      onCountChange?.(FIXED_SLOTS.length + next.length);
+      return next;
+    });
+    if (editingId === id) setEditingId(null);
   };
+
+  // ─── Badge popover ──────────────────────────────────────────────────────────
+
+  function BadgePopover({ id, current, isFixed }: { id: string; current: BadgeOption; isFixed: boolean }) {
+    return (
+      <>
+        <div className="badge-backdrop" onClick={(e) => { e.stopPropagation(); setBadgePopover(null); }} />
+        <div className="badge-popover" onClick={(e) => e.stopPropagation()}>
+          {BADGE_OPTIONS.map((opt) => (
+            <button
+              key={opt.label}
+              className={`badge-option${current.label === opt.label ? " active" : ""}`}
+              onClick={() => setBadge(id, opt, isFixed)}
+            >
+              <span className="badge-option-dot" style={{ background: opt.color }} />
+              <span style={{ color: opt.color }}>{opt.label}</span>
+            </button>
+          ))}
+        </div>
+      </>
+    );
+  }
+
+  // ─── Render ──────────────────────────────────────────────────────────────────
 
   return (
     <>
       <div className="canvas-grid">
-        {cards.map((card) => {
-          const isEditing = editingId === card.id;
-          const popoverOpen = badgePopover === card.id;
+        {/* Fixed cards */}
+        {fixedCards.map((card) => {
+          const isEditing  = editingId === card.slot;
+          const popoverOpen = badgePopover === card.slot;
           return (
             <div
-              key={card.id}
+              key={card.slot}
               className={`canvas-card${isEditing ? " editing" : ""}`}
-              onClick={() => !isEditing && startEdit(card.id, card.text)}
+              onClick={() => !isEditing && startEdit(card.slot, card.content)}
             >
               <div className="card-head">
-                <span className="card-label">{c[card.id as FixedCardId]}</span>
-
-                {/* Badge with popover */}
+                <span className="card-label">{c[card.slot as FixedCardId]}</span>
                 <div className="badge-wrap">
                   <span
                     className="app-tag badge-clickable"
-                    style={{ color: card.tag.color, background: card.tag.bg }}
-                    onClick={(e) => { e.stopPropagation(); setBadgePopover(popoverOpen ? null : card.id); }}
-                  >
-                    {card.tag.label}
-                  </span>
-
-                  {popoverOpen && (
-                    <>
-                      <div
-                        className="badge-backdrop"
-                        onClick={(e) => { e.stopPropagation(); setBadgePopover(null); }}
-                      />
-                      <div className="badge-popover" onClick={(e) => e.stopPropagation()}>
-                        {BADGE_OPTIONS.map((opt) => (
-                          <button
-                            key={opt.label}
-                            className={`badge-option${card.tag.label === opt.label ? " active" : ""}`}
-                            onClick={() => setBadge(card.id, opt)}
-                          >
-                            <span className="badge-option-dot" style={{ background: opt.color }} />
-                            <span style={{ color: opt.color }}>{opt.label}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </>
-                  )}
+                    style={{ color: card.badge.color, background: card.badge.bg }}
+                    onClick={(e) => { e.stopPropagation(); setBadgePopover(popoverOpen ? null : card.slot); }}
+                  >{card.badge.label}</span>
+                  {popoverOpen && <BadgePopover id={card.slot} current={card.badge} isFixed />}
                 </div>
               </div>
 
               {isEditing ? (
                 <>
-                  <textarea
-                    className="card-content-input"
-                    value={editText}
+                  <textarea className="card-content-input" value={editText}
                     onChange={(e) => setEditText(e.target.value)}
-                    placeholder={c.cardContentPlaceholder}
-                    autoFocus
-                    onClick={(e) => e.stopPropagation()}
-                  />
+                    placeholder={c.cardContentPlaceholder} autoFocus
+                    onClick={(e) => e.stopPropagation()} />
                   <div className="card-edit-foot">
-                    <button
-                      className="app-btn"
-                      style={{ fontSize: "11.5px", padding: "5px 12px" }}
-                      onClick={(e) => { e.stopPropagation(); cancelEdit(); }}
-                    >
-                      {t.modal.cancel}
-                    </button>
-                    <button
-                      className="app-btn app-btn-primary"
-                      style={{ fontSize: "11.5px", padding: "5px 12px" }}
-                      onClick={(e) => { e.stopPropagation(); saveEdit(card.id); }}
-                    >
-                      {c.save}
-                    </button>
+                    <button className="app-btn" style={{ fontSize: "11.5px", padding: "5px 12px" }}
+                      onClick={(e) => { e.stopPropagation(); cancelEdit(); }}>{t.modal.cancel}</button>
+                    <button className="app-btn app-btn-primary" style={{ fontSize: "11.5px", padding: "5px 12px" }}
+                      onClick={(e) => { e.stopPropagation(); saveEdit(card.slot); }}>{c.save}</button>
                   </div>
                 </>
               ) : (
                 <>
-                  <p className="card-text">{card.text}</p>
+                  {card.content
+                    ? <p className="card-text">{card.content}</p>
+                    : <p className="card-text card-text-empty">{c.cardContentPlaceholder}</p>}
                   <div className="card-foot">
-                    <span className="card-meta">{c.updated} {card.updated}</span>
-                    <button
-                      className="card-edit"
-                      onClick={(e) => { e.stopPropagation(); startEdit(card.id, card.text); }}
-                    >
+                    {card.updatedAt && <span className="card-meta">{c.updated} {formatUpdated(card.updatedAt)}</span>}
+                    <button className="card-edit"
+                      onClick={(e) => { e.stopPropagation(); startEdit(card.slot, card.content); }}>
                       {c.edit} &rarr;
                     </button>
                   </div>
@@ -201,66 +307,63 @@ export function IdeaCanvas({ addTrigger }: IdeaCanvasProps) {
           );
         })}
 
+        {/* Custom cards */}
         {customCards.map((card) => {
-          const isEditing = editingId === card.id;
+          const isEditing   = editingId === card.id;
+          const popoverOpen = badgePopover === card.id;
           return (
             <div
               key={card.id}
               className={`canvas-card canvas-card-custom${isEditing ? " editing" : ""}`}
-              onClick={() => !isEditing && startEdit(card.id, card.text)}
+              onClick={() => !isEditing && startEdit(card.id, card.content)}
             >
               <div className="card-head">
                 <input
                   className="card-custom-name-input"
                   value={card.name}
                   onChange={(e) => updateCustomName(card.id, e.target.value)}
+                  onBlur={(e) => saveCustomName(card.id, e.target.value)}
                   placeholder={c.newCardName}
                   onClick={(e) => e.stopPropagation()}
                 />
-                <button
-                  className="card-delete-btn"
-                  onClick={(e) => { e.stopPropagation(); deleteCustomCard(card.id); }}
-                >
+                <div className="badge-wrap">
+                  <span
+                    className="app-tag badge-clickable"
+                    style={{ color: card.badge.color, background: card.badge.bg }}
+                    onClick={(e) => { e.stopPropagation(); setBadgePopover(popoverOpen ? null : card.id); }}
+                  >{card.badge.label}</span>
+                  {popoverOpen && <BadgePopover id={card.id} current={card.badge} isFixed={false} />}
+                </div>
+                <button className="card-delete-btn"
+                  onClick={(e) => { e.stopPropagation(); deleteCustomCard(card.id); }}>
                   <Icons.Close />
                 </button>
               </div>
 
               {isEditing ? (
                 <>
-                  <textarea
-                    className="card-content-input"
-                    value={editText}
+                  <textarea className="card-content-input" value={editText}
                     onChange={(e) => setEditText(e.target.value)}
-                    placeholder={c.cardContentPlaceholder}
-                    autoFocus
-                    onClick={(e) => e.stopPropagation()}
-                  />
+                    placeholder={c.cardContentPlaceholder} autoFocus
+                    onClick={(e) => e.stopPropagation()} />
                   <div className="card-edit-foot">
-                    <button
-                      className="app-btn"
-                      style={{ fontSize: "11.5px", padding: "5px 12px" }}
-                      onClick={(e) => { e.stopPropagation(); cancelEdit(); }}
-                    >
-                      {t.modal.cancel}
-                    </button>
-                    <button
-                      className="app-btn app-btn-primary"
-                      style={{ fontSize: "11.5px", padding: "5px 12px" }}
-                      onClick={(e) => { e.stopPropagation(); saveEdit(card.id); }}
-                    >
-                      {c.save}
-                    </button>
+                    <button className="app-btn" style={{ fontSize: "11.5px", padding: "5px 12px" }}
+                      onClick={(e) => { e.stopPropagation(); cancelEdit(); }}>{t.modal.cancel}</button>
+                    <button className="app-btn app-btn-primary" style={{ fontSize: "11.5px", padding: "5px 12px" }}
+                      onClick={(e) => { e.stopPropagation(); saveEdit(card.id); }}>{c.save}</button>
                   </div>
                 </>
               ) : (
                 <>
-                  {card.text ? (
-                    <p className="card-text">{card.text}</p>
-                  ) : (
-                    <p className="card-text card-text-empty">{c.cardContentPlaceholder}</p>
-                  )}
+                  {card.content
+                    ? <p className="card-text">{card.content}</p>
+                    : <p className="card-text card-text-empty">{c.cardContentPlaceholder}</p>}
                   <div className="card-foot">
-                    <span className="card-meta">{c.updated} {card.updated}</span>
+                    {card.updatedAt && <span className="card-meta">{c.updated} {formatUpdated(card.updatedAt)}</span>}
+                    <button className="card-edit"
+                      onClick={(e) => { e.stopPropagation(); startEdit(card.id, card.content); }}>
+                      {c.edit} &rarr;
+                    </button>
                   </div>
                 </>
               )}
@@ -269,8 +372,7 @@ export function IdeaCanvas({ addTrigger }: IdeaCanvasProps) {
         })}
 
         <button className="canvas-card-add" onClick={openAddModal}>
-          <Icons.Plus />
-          <span>{c.addCard}</span>
+          <Icons.Plus /><span>{c.addCard}</span>
         </button>
       </div>
 
@@ -279,37 +381,37 @@ export function IdeaCanvas({ addTrigger }: IdeaCanvasProps) {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-head">
               <span className="modal-title">{t.toolbar.newCard}</span>
-              <button className="modal-close" onClick={() => setShowAddModal(false)}>
-                <Icons.Close />
-              </button>
+              <button className="modal-close" onClick={() => setShowAddModal(false)}><Icons.Close /></button>
             </div>
             <div className="create-proj-field">
-              <input
-                className="modal-input"
-                value={newCardName}
+              <input className="modal-input" value={newCardName}
                 onChange={(e) => setNewCardName(e.target.value)}
-                placeholder={c.newCardName}
-                autoFocus
-                onKeyDown={(e) => { if (e.key === "Enter") handleAddCard(); }}
-              />
-              <textarea
-                className="modal-textarea"
-                value={newCardText}
+                placeholder={c.newCardName} autoFocus
+                onKeyDown={(e) => { if (e.key === "Enter") handleAddCard(); }} />
+              <textarea className="modal-textarea" value={newCardText}
                 onChange={(e) => setNewCardText(e.target.value)}
-                placeholder={c.cardContentPlaceholder}
-              />
+                placeholder={c.cardContentPlaceholder} />
+              <div className="modal-badge-row">
+                <span className="modal-badge-label">Badge</span>
+                <div className="modal-badge-opts">
+                  {BADGE_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.label}
+                      type="button"
+                      className={`modal-badge-opt${newCardBadge.label === opt.label ? " active" : ""}`}
+                      style={{ color: opt.color, ...(newCardBadge.label === opt.label ? { background: opt.bg, borderColor: opt.color } : {}) }}
+                      onClick={() => setNewCardBadge(opt)}
+                    >
+                      <span className="modal-badge-dot" style={{ background: opt.color }} />
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
             <div className="modal-foot">
-              <button className="app-btn" onClick={() => setShowAddModal(false)}>
-                {t.modal.cancel}
-              </button>
-              <button
-                className="app-btn app-btn-primary"
-                onClick={handleAddCard}
-                disabled={!newCardName.trim()}
-              >
-                {c.addCard}
-              </button>
+              <button className="app-btn" onClick={() => setShowAddModal(false)}>{t.modal.cancel}</button>
+              <button className="app-btn app-btn-primary" onClick={handleAddCard} disabled={!newCardName.trim()}>{c.addCard}</button>
             </div>
           </div>
         </div>

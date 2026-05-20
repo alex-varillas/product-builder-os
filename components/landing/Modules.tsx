@@ -18,7 +18,17 @@ export function Modules() {
           </span>
           <h2 className="h2">{m.h2}</h2>
           <p className="lede" style={{ textAlign: "center" }}>
-            {m.subtext}
+            {(() => {
+              const idx = m.subtext.indexOf("idea →");
+              if (idx === -1) return m.subtext;
+              return (
+                <>
+                  {m.subtext.slice(0, idx)}
+                  <br />
+                  <span style={{ whiteSpace: "nowrap" }}>{m.subtext.slice(idx)}</span>
+                </>
+              );
+            })()}
           </p>
         </div>
 

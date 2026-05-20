@@ -21,6 +21,61 @@ import { createClient } from "@/lib/supabase/client";
 type AppView = "projects" | "inbox" | "project";
 export type TabId = "canvas" | "scope" | "log";
 
+// ─── BoardOS seed ─────────────────────────────────────────────────────────────
+
+async function seedBoardOS(
+  supabase: ReturnType<typeof createClient>,
+  userId: string
+): Promise<DbProject | null> {
+  const { data: proj } = await supabase
+    .from("projects")
+    .insert({
+      user_id: userId,
+      name: "BoardOS",
+      description: "Open-source workspace for builders and founders.",
+      color: "#F0620A",
+      version: "v0.1",
+      stage: "draft",
+    })
+    .select("id, name, description, color, version, stage")
+    .single();
+  if (!proj) return null;
+
+  const pid = proj.id;
+
+  await supabase.from("canvas_cards").insert([
+    { user_id: userId, project_id: pid, slot: "problem", title: "problem", badge: "core",
+      content: "Founders spend hours each week maintaining scattered notes, docs, and Notion pages that don't reflect the current state of their product thinking." },
+    { user_id: userId, project_id: pid, slot: "user", title: "user", badge: "hypothesis",
+      content: "Solo founders and indie hackers, 0-5 team size, technical or design background. Building SaaS or tools they would use themselves every day." },
+    { user_id: userId, project_id: pid, slot: "solution", title: "solution", badge: "core",
+      content: "A structured, opinionated workspace that captures product decisions, scopes MVPs, and tracks shipped work — all in one focused, distraction-free view." },
+    { user_id: userId, project_id: pid, slot: "context", title: "context", badge: "signal",
+      content: "Market moment: AI tools are proliferating but product clarity is getting worse. Builders need structure and intentionality, not more features." },
+  ]);
+
+  await supabase.from("mvp_items").insert([
+    { user_id: userId, project_id: pid, name: "Idea Canvas view",           column_id: "core-mvp",    position: 0 },
+    { user_id: userId, project_id: pid, name: "Project sidebar navigation", column_id: "core-mvp",    position: 1 },
+    { user_id: userId, project_id: pid, name: "Inline card editing",        column_id: "core-mvp",    position: 2 },
+    { user_id: userId, project_id: pid, name: "Build Log entries",          column_id: "core-mvp",    position: 3 },
+    { user_id: userId, project_id: pid, name: "Ideas inbox",                column_id: "later",       position: 4 },
+    { user_id: userId, project_id: pid, name: "Export to Markdown",         column_id: "later",       position: 5 },
+    { user_id: userId, project_id: pid, name: "AI Reframe",                 column_id: "not-now",     position: 6 },
+    { user_id: userId, project_id: pid, name: "Team collaboration",         column_id: "not-now",     position: 7 },
+    { user_id: userId, project_id: pid, name: "Public project pages",       column_id: "to-validate", position: 8 },
+  ]);
+
+  await supabase.from("log_entries").insert([
+    { user_id: userId, project_id: pid, type: "shipped",  text: "Shipped initial sidebar and project navigation. Feeling good about the structure — clean, no clutter." },
+    { user_id: userId, project_id: pid, type: "decision", text: "Decided to drop timeline view from v0.2. Too much scope, not enough clarity. Keeping it to Canvas and Scope for now." },
+    { user_id: userId, project_id: pid, type: "insight",  text: "First user test with a builder. Biggest insight: people want to see the why alongside the what. Need to surface hypothesis tags more prominently." },
+    { user_id: userId, project_id: pid, type: "shipped",  text: "Started building the Idea Canvas. 2×2 grid feels right — Problem, User, Solution, Context. No more, no less." },
+  ]);
+
+  return proj;
+}
+
 // ─── DB row shapes ─────────────────────────────────────────────────────────────
 
 interface DbProject {
@@ -103,6 +158,7 @@ export default function AppPage() {
   const [logEntries,       setLogEntries]       = useState<LogEntry[]>([]);
   const [mvpItems,         setMvpItems]         = useState<MVPItem[]>([]);
   const [canvasAddTrigger, setCanvasAddTrigger] = useState(0);
+  const [canvasCount,      setCanvasCount]      = useState(4);
   const [scopeAddTrigger,  setScopeAddTrigger]  = useState(0);
   const [loading,          setLoading]          = useState(true);
 
@@ -118,7 +174,11 @@ export default function AppPage() {
     if (data && data.length > 0) {
       setProjects(data.map(dbToProject));
     } else {
-      setProjects([]);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const seeded = await seedBoardOS(supabase, user.id);
+        if (seeded) setProjects([dbToProject(seeded)]);
+      }
     }
     setLoading(false);
   }, [supabase]);
@@ -303,7 +363,7 @@ export default function AppPage() {
   };
 
   const tabs = [
-    { id: "canvas" as TabId, label: t.tabs.ideaCanvas, count: 4 },
+    { id: "canvas" as TabId, label: t.tabs.ideaCanvas, count: canvasCount },
     { id: "scope"  as TabId, label: t.tabs.mvpScope,   count: mvpItems.filter((i) => !i.done).length },
     { id: "log"    as TabId, label: t.tabs.buildLog,   count: logEntries.length },
   ];
@@ -313,6 +373,7 @@ export default function AppPage() {
     setActiveProj(i);
     setActiveView("project");
     setActiveTab("canvas");
+    setCanvasCount(4);
     setContentKey((k) => k + 1);
   };
   const selectView = (v: AppView) => {
@@ -421,7 +482,7 @@ export default function AppPage() {
             {activeView === "inbox" && <InboxView />}
             {activeView === "project" && proj && (
               <>
-                {activeTab === "canvas" && <IdeaCanvas addTrigger={canvasAddTrigger} />}
+                {activeTab === "canvas" && <IdeaCanvas projectId={proj.id} addTrigger={canvasAddTrigger} onCountChange={setCanvasCount} />}
                 {activeTab === "scope"  && (
                   <MVPScope
                     items={mvpItems}

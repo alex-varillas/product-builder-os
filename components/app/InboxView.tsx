@@ -1,46 +1,80 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Icons } from "@/components/ui/icons";
 import { useAppLang } from "./AppLanguageContext";
+import { createClient } from "@/lib/supabase/client";
 
 interface Idea {
-  id: number;
+  id: string;
   text: string;
   createdAt: string;
 }
 
-const SAMPLE_IDEAS: Idea[] = [
-  { id: 1, text: "What if the Build Log could be exported as a Twitter/X thread automatically?", createdAt: "2d ago" },
-  { id: 2, text: "Let users pin one card from the Idea Canvas to the project overview.", createdAt: "4d ago" },
-  { id: 3, text: "A weekly digest email summarizing all decisions made in the Build Log.", createdAt: "1w ago" },
-];
+function formatTime(iso: string): string {
+  if (!iso) return "";
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
 
 export function InboxView() {
   const { t } = useAppLang();
-  const [ideas, setIdeas] = useState<Idea[]>(SAMPLE_IDEAS);
+  const supabase = createClient();
+  const [ideas, setIdeas] = useState<Idea[]>([]);
   const [draft, setDraft] = useState("");
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
   const inbox = t.inbox;
 
-  const addIdea = () => {
+  const loadIdeas = useCallback(async () => {
+    const { data } = await supabase
+      .from("inbox_ideas")
+      .select("id, text, created_at")
+      .order("created_at", { ascending: false });
+    if (data) {
+      setIdeas(data.map((r) => ({ id: r.id, text: r.text, createdAt: r.created_at })));
+    }
+  }, [supabase]);
+
+  useEffect(() => { loadIdeas(); }, [loadIdeas]);
+
+  const addIdea = async () => {
     const trimmed = draft.trim();
     if (!trimmed) return;
-    setIdeas([{ id: Date.now(), text: trimmed, createdAt: "just now" }, ...ideas]);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase
+      .from("inbox_ideas")
+      .insert({ user_id: user.id, text: trimmed })
+      .select("id, text, created_at")
+      .single();
+    if (data) {
+      setIdeas((prev) => [{ id: data.id, text: data.text, createdAt: data.created_at }, ...prev]);
+    }
     setDraft("");
   };
 
-  const deleteIdea = (id: number) => setIdeas((prev) => prev.filter((i) => i.id !== id));
+  const deleteIdea = async (id: string) => {
+    await supabase.from("inbox_ideas").delete().eq("id", id);
+    setIdeas((prev) => prev.filter((i) => i.id !== id));
+  };
 
   const startEdit = (idea: Idea) => {
     setEditingId(idea.id);
     setEditText(idea.text);
   };
 
-  const saveEdit = (id: number) => {
+  const saveEdit = async (id: string) => {
     const trimmed = editText.trim();
     if (!trimmed) return;
+    await supabase.from("inbox_ideas").update({ text: trimmed }).eq("id", id);
     setIdeas((prev) => prev.map((i) => i.id === id ? { ...i, text: trimmed } : i));
     setEditingId(null);
   };
@@ -111,7 +145,7 @@ export function InboxView() {
                 <>
                   <p className="inbox-item-text">{idea.text}</p>
                   <div className="inbox-item-right">
-                    <span className="inbox-item-meta">{idea.createdAt}</span>
+                    <span className="inbox-item-meta">{formatTime(idea.createdAt)}</span>
                     <button className="inbox-item-edit-btn" onClick={() => startEdit(idea)}>
                       <Icons.Pencil />
                     </button>

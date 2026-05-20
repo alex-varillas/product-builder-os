@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -41,14 +42,7 @@ export default function LoginPage() {
     <div className="auth-shell">
       <div className="auth-card">
         <div className="auth-logo">
-          <div className="auth-logo-box">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <rect x="1" y="1" width="4" height="4" rx="1.2" fill="rgba(255,255,255,.92)" />
-              <rect x="7" y="1" width="4" height="4" rx="1.2" fill="rgba(255,255,255,.55)" />
-              <rect x="1" y="7" width="4" height="4" rx="1.2" fill="rgba(255,255,255,.55)" />
-              <rect x="7" y="7" width="4" height="4" rx="1.2" fill="rgba(255,255,255,.28)" />
-            </svg>
-          </div>
+          <Image src="/logo.png" alt="BoardOS" width={28} height={28} className="auth-logo-box" />
           <span className="auth-logo-name">Board<em>OS</em></span>
         </div>
 

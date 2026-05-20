@@ -19,7 +19,7 @@ export function Footer() {
                 alt="BoardOS"
                 width={32}
                 height={32}
-                style={{ borderRadius: 8, flexShrink: 0 }}
+                style={{ flexShrink: 0 }}
               />
               <span>
                 Board<span style={{ color: "var(--fg-2)", fontWeight: 400 }}>OS</span>

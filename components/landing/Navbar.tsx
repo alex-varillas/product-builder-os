@@ -23,8 +23,8 @@ export function Navbar() {
             src="/logo.png"
             alt="BoardOS"
             width={28}
-            height={30}
-            style={{ borderRadius: 9, flexShrink: 0 }}
+            height={28}
+            style={{ flexShrink: 0 }}
             priority
           />
           <span>

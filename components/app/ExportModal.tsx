@@ -3,11 +3,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useState } from "react";
-import { Project, MVPItem, LogEntry, IDEA_CARDS, KANBAN_COLUMNS, KanbanColumn, LogType } from "@/lib/app-data";
+import { Project, MVPItem, LogEntry, KANBAN_COLUMNS, KanbanColumn, LogType } from "@/lib/app-data";
 import { Icons } from "@/components/ui/icons";
 import { useAppLang } from "./AppLanguageContext";
+import { createClient } from "@/lib/supabase/client";
 
 type FixedCardId = "problem" | "user" | "solution" | "context";
+const FIXED_SLOTS: FixedCardId[] = ["problem", "user", "solution", "context"];
+
+interface CanvasCard {
+  slot:    string;
+  title:   string;
+  content: string;
+  badge:   string;
+}
 
 interface ExportModalProps {
   project:    Project;
@@ -35,13 +44,14 @@ async function fetchLogoBase64(): Promise<string> {
 // ─── Markdown ─────────────────────────────────────────────────────────────────
 
 function generateMarkdown(
-  project:    Project,
-  mvpItems:   MVPItem[],
-  logEntries: LogEntry[],
-  sections:   Sections,
-  colNames:   Record<KanbanColumn, string>,
-  logTypes:   Record<LogType, string>,
-  cardLabels: Record<FixedCardId, string>
+  project:     Project,
+  canvasCards: CanvasCard[],
+  mvpItems:    MVPItem[],
+  logEntries:  LogEntry[],
+  sections:    Sections,
+  colNames:    Record<KanbanColumn, string>,
+  logTypes:    Record<LogType, string>,
+  cardLabels:  Record<FixedCardId, string>
 ): string {
   const lines: string[] = [];
   lines.push(`# ${project.name}${project.version ? " " + project.version : ""}`, "");
@@ -49,10 +59,16 @@ function generateMarkdown(
 
   if (sections.canvas) {
     lines.push("## Idea Canvas", "");
-    IDEA_CARDS.forEach((card) => {
-      const label = cardLabels[card.id as FixedCardId] ?? card.id;
-      lines.push(`### ${label}`, "", card.text, "");
+    // Fixed slots in canonical order
+    FIXED_SLOTS.forEach((slot) => {
+      const card  = canvasCards.find((c) => c.slot === slot);
+      const label = cardLabels[slot];
+      lines.push(`### ${label}`, "", card?.content || "*Empty*", "");
     });
+    // Custom cards
+    canvasCards
+      .filter((c) => !FIXED_SLOTS.includes(c.slot as FixedCardId))
+      .forEach((c) => lines.push(`### ${c.title || c.slot}`, "", c.content || "*Empty*", ""));
   }
   if (sections.scope) {
     lines.push("## MVP Scope", "");
@@ -87,13 +103,14 @@ function generateMarkdown(
 // Returns a plain HTML string (no <html>/<body> wrapper); downloadPDF wraps it.
 
 function generatePDFContent(
-  project:    Project,
-  mvpItems:   MVPItem[],
-  logEntries: LogEntry[],
-  sections:   Sections,
-  colNames:   Record<KanbanColumn, string>,
-  logTypes:   Record<LogType, string>,
-  cardLabels: Record<FixedCardId, string>
+  project:     Project,
+  canvasCards: CanvasCard[],
+  mvpItems:    MVPItem[],
+  logEntries:  LogEntry[],
+  sections:    Sections,
+  colNames:    Record<KanbanColumn, string>,
+  logTypes:    Record<LogType, string>,
+  cardLabels:  Record<FixedCardId, string>
 ): string {
   const activeItems = mvpItems.filter((i) => !i.done);
   const doneItems   = mvpItems.filter((i) => i.done);
@@ -116,18 +133,25 @@ function generatePDFContent(
   // ── Canvas ──
   let canvasSection = "";
   if (sections.canvas) {
-    const cells = IDEA_CARDS.map((card) => {
-      const label = cardLabels[card.id as FixedCardId] ?? card.id;
-      const tag   = tagColors[card.tag.label] ?? { color: "#A09D97", bg: "#F3EFE7" };
+    // Fixed slots in canonical order, then custom cards
+    const orderedCards: CanvasCard[] = [
+      ...FIXED_SLOTS.map((slot) => canvasCards.find((c) => c.slot === slot) ?? { slot, title: slot, content: "", badge: "core" }),
+      ...canvasCards.filter((c) => !FIXED_SLOTS.includes(c.slot as FixedCardId)),
+    ];
+
+    const cells = orderedCards.map((card) => {
+      const isFixed = FIXED_SLOTS.includes(card.slot as FixedCardId);
+      const label   = isFixed ? cardLabels[card.slot as FixedCardId] : (card.title || card.slot);
+      const tag     = tagColors[card.badge] ?? { color: "#A09D97", bg: "#F3EFE7" };
       return `<td style="width:50%;padding:5px;vertical-align:top;">
         <div style="background:#fff;border:1px solid #E2DDD4;border-radius:16px;padding:18px 20px;height:100%;">
           <table style="width:100%;border-collapse:collapse;margin-bottom:10px;"><tr>
             <td style="font-family:monospace;font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#A09D97;vertical-align:middle;">${label}</td>
             <td style="text-align:right;vertical-align:middle;white-space:nowrap;">
-              <span style="display:inline-block;font-size:9.5px;font-weight:500;padding:2px 8px;border-radius:20px;color:${tag.color};background:${tag.bg};">${card.tag.label}</span>
+              <span style="display:inline-block;font-size:9.5px;font-weight:500;padding:2px 8px;border-radius:20px;color:${tag.color};background:${tag.bg};">${card.badge}</span>
             </td>
           </tr></table>
-          <p style="font-size:12.5px;line-height:1.7;color:#1A1714;margin:0;">${card.text}</p>
+          <p style="font-size:12.5px;line-height:1.7;color:${card.content ? "#1A1714" : "#A09D97"};margin:0;">${card.content || "Empty"}</p>
         </div>
       </td>`;
     });
@@ -286,12 +310,21 @@ export function ExportModal({ project, mvpItems, logEntries, onClose }: ExportMo
   const handleExport = async () => {
     setExporting(true);
     try {
+      // Always load the real canvas cards from Supabase
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("canvas_cards")
+        .select("slot, title, content, badge")
+        .eq("project_id", project.id)
+        .order("updated_at");
+      const canvasCards: CanvasCard[] = data ?? [];
+
       if (format === "markdown") {
-        const md = generateMarkdown(project, mvpItems, logEntries, sections, colNames, logTypes, cardLabels);
+        const md = generateMarkdown(project, canvasCards, mvpItems, logEntries, sections, colNames, logTypes, cardLabels);
         downloadMarkdown(md, `${filename}.md`);
         onClose();
       } else {
-        const content = generatePDFContent(project, mvpItems, logEntries, sections, colNames, logTypes, cardLabels);
+        const content = generatePDFContent(project, canvasCards, mvpItems, logEntries, sections, colNames, logTypes, cardLabels);
         await downloadPDF(content, `${filename}.pdf`);
         onClose();
       }

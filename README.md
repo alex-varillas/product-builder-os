@@ -4,8 +4,6 @@
 
 BoardOS is an open source tool for indie builders and small product teams. It gives you three focused modules — Idea Canvas, MVP Scope, and Build Log — to go from raw idea to a clear, shareable product overview.
 
-> **Live demo:** [boardos.io](https://boardos.io)
-
 ---
 
 ## What's inside

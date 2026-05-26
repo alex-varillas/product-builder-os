@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AnimatePresence, motion, MotionConfig } from "motion/react";
 import { Sidebar } from "@/components/app/Sidebar";
 import { IdeaCanvas } from "@/components/app/IdeaCanvas";
 import { MVPScope } from "@/components/app/MVPScope";
@@ -17,6 +18,9 @@ import { Icons } from "@/components/ui/icons";
 import { LogEntry, LogType, MVPItem, Project } from "@/lib/app-data";
 import { useAppLang } from "@/components/app/AppLanguageContext";
 import { createClient } from "@/lib/supabase/client";
+import { fadeUp, springSoft } from "@/lib/motion";
+import { ToastProvider, useToast } from "@/components/app/Toast";
+import { OnboardingTour, shouldShowOnboarding } from "@/components/app/OnboardingTour";
 
 type AppView = "projects" | "inbox" | "project";
 export type TabId = "canvas" | "scope" | "log";
@@ -141,7 +145,16 @@ function dbToLogEntry(r: DbLogEntry): LogEntry {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AppPage() {
+  return (
+    <ToastProvider>
+      <AppPageInner />
+    </ToastProvider>
+  );
+}
+
+function AppPageInner() {
   const { t } = useAppLang();
+  const { toast } = useToast();
   const router = useRouter();
   const supabase = createClient();
 
@@ -161,6 +174,7 @@ export default function AppPage() {
   const [canvasCount,      setCanvasCount]      = useState(4);
   const [scopeAddTrigger,  setScopeAddTrigger]  = useState(0);
   const [loading,          setLoading]          = useState(true);
+  const [showTour,         setShowTour]         = useState(false);
 
   const proj = projects[activeProj];
 
@@ -181,6 +195,7 @@ export default function AppPage() {
       }
     }
     setLoading(false);
+    setShowTour(shouldShowOnboarding());
   }, [supabase]);
 
   useEffect(() => {
@@ -233,6 +248,7 @@ export default function AppPage() {
       .single();
     if (!error && data) {
       setProjects((prev) => [...prev, dbToProject(data)]);
+      toast("Project created");
     }
     setNewProjOpen(false);
   };
@@ -243,6 +259,7 @@ export default function AppPage() {
     await supabase.from("projects").update({ name, description: desc, color }).eq("id", proj.id);
     setProjects((prev) => prev.map((p, idx) => idx === i ? { ...p, name, desc, color } : p));
     setEditingProjIndex(null);
+    toast("Project saved");
   };
 
   const handleDeleteProject = async (i: number) => {
@@ -271,6 +288,7 @@ export default function AppPage() {
       .single();
     if (!error && data) {
       setLogEntries((prev) => [dbToLogEntry(data), ...prev]);
+      toast("Log entry added");
     }
   };
 
@@ -368,7 +386,7 @@ export default function AppPage() {
     { id: "log"    as TabId, label: t.tabs.buildLog,   count: logEntries.length },
   ];
 
-  const changeTab  = (tab: TabId) => { setActiveTab(tab); setContentKey((k) => k + 1); };
+  const changeTab  = (tab: TabId) => { setActiveTab(tab); };
   const openProject = (i: number) => {
     setActiveProj(i);
     setActiveView("project");
@@ -403,7 +421,12 @@ export default function AppPage() {
   if (loading) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg)" }}>
-        <span style={{ color: "var(--fg-3)", fontSize: "13px" }}>Loading…</span>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+          <div className="app-spinner" />
+          <span style={{ color: "var(--fg-3)", fontSize: "12px", letterSpacing: "0.04em", textTransform: "uppercase", fontFamily: "var(--font-geist-mono), monospace" }}>
+            Loading
+          </span>
+        </div>
       </div>
     );
   }
@@ -421,6 +444,7 @@ export default function AppPage() {
         onLogout={handleLogout}
       />
 
+      <MotionConfig reducedMotion="user">
       <div className="app-main">
         {activeView === "project" && proj && (
           <>
@@ -446,14 +470,14 @@ export default function AppPage() {
                 <button className="app-btn" onClick={() => setExportOpen(true)}>
                   <Icons.Download />{t.toolbar.export}
                 </button>
-                <button className="app-btn app-btn-primary" onClick={handleNewEntry}>
+                <motion.button className="app-btn app-btn-primary" whileTap={{ scale: 0.97 }} onClick={handleNewEntry} data-tour="toolbar">
                   <Icons.Plus />{newEntryLabel()}
-                </button>
+                </motion.button>
               </div>
             </div>
 
             {/* Tabs */}
-            <div className="app-tabs">
+            <div className="app-tabs" data-tour="tabs">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
@@ -462,6 +486,9 @@ export default function AppPage() {
                 >
                   {tab.label}
                   <span className="tab-count">{tab.count}</span>
+                  {activeTab === tab.id && (
+                    <motion.div layoutId="tab-indicator" className="tab-indicator" transition={springSoft} />
+                  )}
                 </button>
               ))}
             </div>
@@ -470,63 +497,93 @@ export default function AppPage() {
 
         {/* Content */}
         <div className="app-content">
-          <div key={contentKey} className="content-fade">
-            {activeView === "projects" && (
-              <ProjectsView
-                projects={projects}
-                onOpenProject={openProject}
-                onNewProject={() => setNewProjOpen(true)}
-                onEditProject={setEditingProjIndex}
-              />
-            )}
-            {activeView === "inbox" && <InboxView />}
-            {activeView === "project" && proj && (
-              <>
-                {activeTab === "canvas" && <IdeaCanvas projectId={proj.id} addTrigger={canvasAddTrigger} onCountChange={setCanvasCount} />}
-                {activeTab === "scope"  && (
-                  <MVPScope
-                    items={mvpItems}
-                    onItemsChange={handleMvpItemsChange}
-                    addTrigger={scopeAddTrigger}
-                  />
-                )}
-                {activeTab === "log" && (
-                  <BuildLog entries={logEntries} onAddEntry={addLogEntry} />
-                )}
-              </>
-            )}
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={contentKey}
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              style={{ width: "100%" }}
+            >
+              {activeView === "projects" && (
+                <ProjectsView
+                  projects={projects}
+                  onOpenProject={openProject}
+                  onNewProject={() => setNewProjOpen(true)}
+                  onEditProject={setEditingProjIndex}
+                />
+              )}
+              {activeView === "inbox" && <InboxView />}
+              {activeView === "project" && proj && (
+                <AnimatePresence mode="wait">
+                  {activeTab === "canvas" && (
+                    <motion.div key="canvas" variants={fadeUp} initial="hidden" animate="visible" exit="exit">
+                      <IdeaCanvas projectId={proj.id} addTrigger={canvasAddTrigger} onCountChange={setCanvasCount} />
+                    </motion.div>
+                  )}
+                  {activeTab === "scope" && (
+                    <motion.div key="scope" variants={fadeUp} initial="hidden" animate="visible" exit="exit">
+                      <MVPScope
+                        items={mvpItems}
+                        onItemsChange={handleMvpItemsChange}
+                        addTrigger={scopeAddTrigger}
+                      />
+                    </motion.div>
+                  )}
+                  {activeTab === "log" && (
+                    <motion.div key="log" variants={fadeUp} initial="hidden" animate="visible" exit="exit">
+                      <BuildLog entries={logEntries} onAddEntry={addLogEntry} />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
+      </MotionConfig>
 
-      {searchOpen && (
-        <SearchOverlay
-          onClose={() => setSearchOpen(false)}
-          onNavigate={handleSearchNavigate}
-          projects={projects}
-          mvpItems={mvpItems}
-          logEntries={logEntries}
-          activeProj={activeProj}
-        />
-      )}
-      {entryOpen   && <NewEntryModal onClose={() => setEntryOpen(false)} onAdd={addLogEntry} />}
-      {newProjOpen && <CreateProjectModal onClose={() => setNewProjOpen(false)} onCreate={handleCreateProject} />}
-      {editingProjIndex !== null && projects[editingProjIndex] && (
-        <EditProjectModal
-          project={projects[editingProjIndex]}
-          onClose={() => setEditingProjIndex(null)}
-          onSave={(name, desc, color) => handleSaveProject(editingProjIndex, name, desc, color)}
-          onDelete={() => { handleDeleteProject(editingProjIndex); setEditingProjIndex(null); }}
-        />
-      )}
-      {exportOpen && proj && (
-        <ExportModal
-          project={proj}
-          mvpItems={mvpItems}
-          logEntries={logEntries}
-          onClose={() => setExportOpen(false)}
-        />
-      )}
+      <AnimatePresence>
+        {searchOpen && (
+          <SearchOverlay
+            onClose={() => setSearchOpen(false)}
+            onNavigate={handleSearchNavigate}
+            projects={projects}
+            mvpItems={mvpItems}
+            logEntries={logEntries}
+            activeProj={activeProj}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {entryOpen && <NewEntryModal onClose={() => setEntryOpen(false)} onAdd={addLogEntry} />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {newProjOpen && <CreateProjectModal onClose={() => setNewProjOpen(false)} onCreate={handleCreateProject} />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {editingProjIndex !== null && projects[editingProjIndex] && (
+          <EditProjectModal
+            project={projects[editingProjIndex]}
+            onClose={() => setEditingProjIndex(null)}
+            onSave={(name, desc, color) => handleSaveProject(editingProjIndex, name, desc, color)}
+            onDelete={() => { handleDeleteProject(editingProjIndex); setEditingProjIndex(null); }}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {exportOpen && proj && (
+          <ExportModal
+            project={proj}
+            mvpItems={mvpItems}
+            logEntries={logEntries}
+            onClose={() => setExportOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {showTour && <OnboardingTour onDone={() => setShowTour(false)} />}
     </>
   );
 }

@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "motion/react";
 import { LogEntry, LogType, LOG_TYPE_CFG } from "@/lib/app-data";
 import { useAppLang } from "./AppLanguageContext";
+import { staggerContainer, fadeUp } from "@/lib/motion";
 
 const LOG_TYPES: LogType[] = ["shipped", "decision", "insight", "idea"];
 
@@ -69,11 +71,11 @@ export function BuildLog({ entries, onAddEntry }: BuildLogProps) {
         </div>
       </div>
 
-      <div className="log-list">
+      <motion.div className="log-list" variants={staggerContainer} initial="hidden" animate="visible">
         {entries.map((entry) => {
           const cfg = LOG_TYPE_CFG[entry.type];
           return (
-            <div key={entry.id} className="log-item">
+            <motion.div key={entry.id} className="log-item" variants={fadeUp} initial="hidden" animate="visible">
               <div className="log-date">{entry.date}</div>
               <div className="log-body">
                 <p className="log-text">{entry.text}</p>
@@ -81,10 +83,10 @@ export function BuildLog({ entries, onAddEntry }: BuildLogProps) {
                   {l.types[entry.type]}
                 </div>
               </div>
-            </div>
+            </motion.div>
           );
         })}
-      </div>
+      </motion.div>
     </div>
   );
 }

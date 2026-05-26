@@ -3,10 +3,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useState } from "react";
+import { motion } from "motion/react";
 import { Project, MVPItem, LogEntry, KANBAN_COLUMNS, KanbanColumn, LogType } from "@/lib/app-data";
 import { Icons } from "@/components/ui/icons";
 import { useAppLang } from "./AppLanguageContext";
 import { createClient } from "@/lib/supabase/client";
+import { fadeIn, modalSpring } from "@/lib/motion";
 
 type FixedCardId = "problem" | "user" | "solution" | "context";
 const FIXED_SLOTS: FixedCardId[] = ["problem", "user", "solution", "context"];
@@ -336,8 +338,8 @@ export function ExportModal({ project, mvpItems, logEntries, onClose }: ExportMo
   const anySelected = sections.canvas || sections.scope || sections.log;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal export-modal" onClick={(e) => e.stopPropagation()}>
+    <motion.div className="modal-overlay" variants={fadeIn} initial="hidden" animate="visible" exit="exit" onClick={onClose}>
+      <motion.div className="modal export-modal" variants={modalSpring} initial="hidden" animate="visible" exit="exit" onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
           <span className="modal-title">{ex.title}</span>
           <button className="modal-close" onClick={onClose}><Icons.Close /></button>
@@ -381,7 +383,7 @@ export function ExportModal({ project, mvpItems, logEntries, onClose }: ExportMo
             {exporting ? "Generating…" : ex.download}
           </button>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

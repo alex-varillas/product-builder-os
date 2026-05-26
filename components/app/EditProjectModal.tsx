@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "motion/react";
 import { Project } from "@/lib/app-data";
 import { Icons } from "@/components/ui/icons";
 import { useAppLang } from "./AppLanguageContext";
+import { fadeIn, modalSpring } from "@/lib/motion";
 
 const COLORS = ["#F0620A", "#6D28D9", "#15803D", "#0D9488", "#2563EB", "#A09D97"];
 
@@ -30,8 +32,8 @@ export function EditProjectModal({ project, onClose, onSave, onDelete }: EditPro
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+    <motion.div className="modal-overlay" variants={fadeIn} initial="hidden" animate="visible" exit="exit" onClick={onClose}>
+      <motion.div className="modal" variants={modalSpring} initial="hidden" animate="visible" exit="exit" onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
           <span className="modal-title">{confirming ? p.deleteTitle : p.edit}</span>
           <button className="modal-close" onClick={onClose}><Icons.Close /></button>
@@ -100,7 +102,7 @@ export function EditProjectModal({ project, onClose, onSave, onDelete }: EditPro
             </>
           )}
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

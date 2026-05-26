@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { motion } from "motion/react";
 import { Icons } from "@/components/ui/icons";
 import { Project, MVPItem, LogEntry, LOG_TYPE_CFG } from "@/lib/app-data";
 import { useAppLang } from "./AppLanguageContext";
+import { fadeIn, modalSpring } from "@/lib/motion";
 
 type TabId = "canvas" | "scope" | "log";
 
@@ -89,8 +91,8 @@ export function SearchOverlay({ onClose, onNavigate, projects, mvpItems, logEntr
   );
 
   return (
-    <div className="app-overlay" onClick={onClose}>
-      <div className="search-box" onClick={(e) => e.stopPropagation()}>
+    <motion.div className="app-overlay" variants={fadeIn} initial="hidden" animate="visible" exit="exit" onClick={onClose}>
+      <motion.div className="search-box" variants={modalSpring} initial="hidden" animate="visible" exit="exit" onClick={(e) => e.stopPropagation()}>
         <div className="search-input-row">
           <Icons.Search />
           <input
@@ -113,7 +115,7 @@ export function SearchOverlay({ onClose, onNavigate, projects, mvpItems, logEntr
             <div className="search-empty">{t.search.noResults} &quot;{q}&quot;</div>
           ) : null}
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

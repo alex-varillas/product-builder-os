@@ -47,7 +47,7 @@ export function Sidebar({ activeView, activeProj, projects, onSelectView, onSele
 
       <div className="sb-divider" />
 
-      <div className="sb-section">{t.sidebar.projects}</div>
+      <div className="sb-section" data-tour="projects">{t.sidebar.projects}</div>
       {projects.map((p, i) => (
         <div
           key={p.id}

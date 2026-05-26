@@ -2,9 +2,23 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { AnimatePresence, motion } from "motion/react";
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  PointerSensor,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 import { MVPItem, KanbanColumn, KANBAN_COLUMNS } from "@/lib/app-data";
 import { useAppLang } from "./AppLanguageContext";
 import { Icons } from "@/components/ui/icons";
+import { staggerContainer, fadeUp, fadeIn, modalSpring } from "@/lib/motion";
+import { useToast } from "./Toast";
 
 const PRIORITIES = ["P1", "P2", "P3"] as const;
 type Priority = "P1" | "P2" | "P3";
@@ -15,8 +29,89 @@ interface MVPScopeProps {
   addTrigger:    number;
 }
 
+// ── Draggable card ─────────────────────────────────────────────────────────────
+
+function DraggableCard({
+  item,
+  col,
+  onOpen,
+  isMarkingDone,
+  onMarkDone,
+}: {
+  item: MVPItem;
+  col: typeof KANBAN_COLUMNS[number];
+  onOpen: (item: MVPItem) => void;
+  isMarkingDone: boolean;
+  onMarkDone: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: item.id });
+
+  return (
+    <motion.div
+      ref={setNodeRef}
+      className={`kanban-card${isDragging ? " is-dragging" : ""}${isMarkingDone ? " is-marking-done" : ""}`}
+      variants={fadeUp}
+      initial="hidden"
+      animate="visible"
+      exit={{ opacity: 0, scale: 0.88, y: -6, transition: { duration: 0.22, ease: "easeIn" } }}
+      style={{ opacity: isDragging ? 0.28 : 1 }}
+      onClick={() => onOpen(item)}
+      {...attributes}
+      {...listeners}
+    >
+      <div className="kanban-card-name-wrap">
+        <span className="kanban-card-name">{item.name}</span>
+        {isMarkingDone && (
+          <motion.div
+            className="kanban-strikethrough"
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ duration: 0.32, ease: "easeInOut" }}
+            style={{ originX: 0 }}
+          />
+        )}
+      </div>
+
+      <div className="kanban-card-foot">
+        <span className="kanban-pri" style={{ color: col.color }}>{item.priority}</span>
+        <div className="kanban-card-foot-right">
+          {item.why && <span className="kanban-has-why">why</span>}
+          <button
+            className={`kanban-card-check${isMarkingDone ? " is-done" : ""}`}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); onMarkDone(); }}
+            title="Mark as done"
+          >
+            <Icons.Check />
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ── Droppable column ───────────────────────────────────────────────────────────
+
+function DroppableColumn({
+  colId,
+  children,
+}: {
+  colId: string;
+  children: React.ReactNode;
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: colId });
+  return (
+    <div ref={setNodeRef} className={`kanban-col${isOver ? " drop-over" : ""}`}>
+      {children}
+    </div>
+  );
+}
+
+// ── MVPScope ───────────────────────────────────────────────────────────────────
+
 export function MVPScope({ items, onItemsChange, addTrigger }: MVPScopeProps) {
   const { t } = useAppLang();
+  const { toast } = useToast();
   const s = t.scope;
 
   /* ─ Detail modal ─ */
@@ -33,6 +128,16 @@ export function MVPScope({ items, onItemsChange, addTrigger }: MVPScopeProps) {
 
   /* ─ Done section ─ */
   const [doneOpen, setDoneOpen] = useState(false);
+
+  /* ─ Drag state ─ */
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  /* ─ Mark-done animation ─ */
+  const [markingDoneId, setMarkingDoneId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+  );
 
   // Track the last handled trigger so remounting with a stale trigger doesn't reopen the modal
   const handledTrigger = useRef(addTrigger);
@@ -65,6 +170,7 @@ export function MVPScope({ items, onItemsChange, addTrigger }: MVPScopeProps) {
     };
     onItemsChange([...items, newItem]);
     setShowAddModal(false);
+    toast("Feature added");
   };
 
   /* ── Detail ── */
@@ -80,6 +186,7 @@ export function MVPScope({ items, onItemsChange, addTrigger }: MVPScopeProps) {
     if (!selected) return;
     onItemsChange(items.map((i) => i.id === selected.id ? { ...i, name: editName, why: editWhy } : i));
     closeDetail();
+    toast("Feature saved");
   };
 
   const moveItem = (col: KanbanColumn) => {
@@ -98,40 +205,93 @@ export function MVPScope({ items, onItemsChange, addTrigger }: MVPScopeProps) {
     if (nextDone) { setDoneOpen(true); closeDetail(); }
   };
 
+  /* ── Mark done (card quick-action) ── */
+  const handleMarkDone = (id: string) => {
+    if (markingDoneId) return;
+    setMarkingDoneId(id);
+    // Commit the done state — card exits with green + strikethrough still visible
+    setTimeout(() => {
+      onItemsChange(items.map((i) => i.id === id ? { ...i, done: true } : i));
+      setDoneOpen(true);
+    }, 580);
+    // Clear the animation state after the exit animation finishes (580 + 260ms)
+    setTimeout(() => setMarkingDoneId(null), 840);
+  };
+
+  /* ── Drag handlers ── */
+  const handleDragStart = ({ active }: DragStartEvent) => {
+    setActiveId(String(active.id));
+  };
+
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    setActiveId(null);
+    if (!over) return;
+    const draggedItem = items.find((i) => i.id === active.id);
+    if (!draggedItem) return;
+    const targetCol = over.id as KanbanColumn;
+    if (draggedItem.column === targetCol) return;
+    onItemsChange(items.map((i) => i.id === active.id ? { ...i, column: targetCol } : i));
+    toast("Feature moved");
+  };
+
   const doneItems   = items.filter((i) => i.done);
   const activeItems = items.filter((i) => !i.done);
+
+  const overlayItem = activeId ? items.find((i) => i.id === activeId) : null;
+  const overlayCol  = overlayItem ? KANBAN_COLUMNS.find((c) => c.id === overlayItem.column) : null;
 
   return (
     <>
       {/* ── Board ── */}
-      <div className="kanban-board">
-        {KANBAN_COLUMNS.map((col) => {
-          const colItems = activeItems.filter((i) => i.column === col.id);
-          return (
-            <div key={col.id} className="kanban-col">
-              <div className="kanban-col-header">
-                <span className="kanban-col-dot" style={{ background: col.color }} />
-                <span className="kanban-col-name">{s.columns[col.id]}</span>
-                <span className="kanban-col-count">{colItems.length}</span>
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <div className="kanban-board">
+          {KANBAN_COLUMNS.map((col) => {
+            const colItems = activeItems.filter((i) => i.column === col.id);
+            return (
+              <DroppableColumn key={col.id} colId={col.id}>
+                <div className="kanban-col-header">
+                  <span className="kanban-col-dot" style={{ background: col.color }} />
+                  <span className="kanban-col-name">{s.columns[col.id]}</span>
+                  <span className="kanban-col-count">{colItems.length}</span>
+                </div>
+                <motion.div className="kanban-cards" variants={staggerContainer} initial="hidden" animate="visible">
+                  <AnimatePresence>
+                    {colItems.map((item) => (
+                      <DraggableCard
+                        key={item.id}
+                        item={item}
+                        col={col}
+                        onOpen={openDetail}
+                        isMarkingDone={markingDoneId === item.id}
+                        onMarkDone={() => handleMarkDone(item.id)}
+                      />
+                    ))}
+                  </AnimatePresence>
+                  <button className="kanban-add" onClick={() => openAddModal(col.id)}>
+                    + {s.detail.addFeature}
+                  </button>
+                </motion.div>
+              </DroppableColumn>
+            );
+          })}
+        </div>
+
+        <DragOverlay>
+          {overlayItem && overlayCol && (
+            <div className="kanban-card drag-overlay-card">
+              <div className="kanban-card-name-wrap">
+                <span className="kanban-card-name">{overlayItem.name}</span>
               </div>
-              <div className="kanban-cards">
-                {colItems.map((item) => (
-                  <div key={item.id} className="kanban-card" onClick={() => openDetail(item)}>
-                    <div className="kanban-card-name">{item.name}</div>
-                    <div className="kanban-card-foot">
-                      <span className="kanban-pri" style={{ color: col.color }}>{item.priority}</span>
-                      {item.why && <span className="kanban-has-why">why</span>}
-                    </div>
-                  </div>
-                ))}
-                <button className="kanban-add" onClick={() => openAddModal(col.id)}>
-                  + {s.detail.addFeature}
-                </button>
+              <div className="kanban-card-foot">
+                <span className="kanban-pri" style={{ color: overlayCol.color }}>{overlayItem.priority}</span>
+                <div className="kanban-card-foot-right">
+                  {overlayItem.why && <span className="kanban-has-why">why</span>}
+                </div>
               </div>
             </div>
-          );
-        })}
-      </div>
+          )}
+        </DragOverlay>
+      </DndContext>
 
       {/* ── Done section ── */}
       {doneItems.length > 0 && (
@@ -167,9 +327,11 @@ export function MVPScope({ items, onItemsChange, addTrigger }: MVPScopeProps) {
       )}
 
       {/* ── Add feature modal (portal → covers full screen) ── */}
-      {showAddModal && createPortal(
-        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+      {createPortal(
+        <AnimatePresence>
+          {showAddModal && (
+        <motion.div className="modal-overlay" variants={fadeIn} initial="hidden" animate="visible" exit="exit" onClick={() => setShowAddModal(false)}>
+          <motion.div className="modal" variants={modalSpring} initial="hidden" animate="visible" exit="exit" onClick={(e) => e.stopPropagation()}>
             <div className="modal-head">
               <span className="modal-title">{s.detail.addFeature}</span>
               <button className="modal-close" onClick={() => setShowAddModal(false)}>
@@ -244,14 +406,18 @@ export function MVPScope({ items, onItemsChange, addTrigger }: MVPScopeProps) {
                 {s.detail.add}
               </button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
+          )}
+        </AnimatePresence>
       , document.body)}
 
       {/* ── Detail modal (portal → covers full screen) ── */}
-      {selected && createPortal(
-        <div className="modal-overlay" onClick={closeDetail}>
-          <div className="modal kanban-detail" onClick={(e) => e.stopPropagation()}>
+      {createPortal(
+        <AnimatePresence>
+          {selected && (
+        <motion.div className="modal-overlay" variants={fadeIn} initial="hidden" animate="visible" exit="exit" onClick={closeDetail}>
+          <motion.div className="modal kanban-detail" variants={modalSpring} initial="hidden" animate="visible" exit="exit" onClick={(e) => e.stopPropagation()}>
             <div className="modal-head">
               <span className="modal-title">{editName || selected.name}</span>
               <button className="modal-close" onClick={closeDetail}><Icons.Close /></button>
@@ -326,8 +492,10 @@ export function MVPScope({ items, onItemsChange, addTrigger }: MVPScopeProps) {
                 <button className="app-btn app-btn-primary" onClick={saveDetail}>{s.detail.save}</button>
               </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
+          )}
+        </AnimatePresence>
       , document.body)}
     </>
   );

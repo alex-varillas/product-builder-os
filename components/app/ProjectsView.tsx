@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "motion/react";
 import { Project } from "@/lib/app-data";
 import { Icons } from "@/components/ui/icons";
 import { useAppLang } from "./AppLanguageContext";
+import { staggerContainer, fadeUp } from "@/lib/motion";
 
 interface ProjectsViewProps {
   projects: Project[];
@@ -35,9 +37,9 @@ export function ProjectsView({ projects, onOpenProject, onNewProject, onEditProj
           <p className="empty-hint">{p.emptyHint}</p>
         </div>
       ) : (
-        <div className="projects-grid">
+        <motion.div className="projects-grid" variants={staggerContainer} initial="hidden" animate="visible">
           {projects.map((proj, i) => (
-            <div key={proj.id} className="proj-card">
+            <motion.div key={proj.id} className="proj-card" variants={fadeUp} initial="hidden" animate="visible">
               <div className="proj-card-top">
                 <div className="proj-card-dot" style={{ background: proj.color }} />
                 <div className="proj-card-top-right">
@@ -79,9 +81,9 @@ export function ProjectsView({ projects, onOpenProject, onNewProject, onEditProj
               <button className="app-btn proj-card-btn" onClick={() => onOpenProject(i)}>
                 {p.openProject} &rarr;
               </button>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
     </div>
   );

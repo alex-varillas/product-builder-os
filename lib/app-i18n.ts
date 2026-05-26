@@ -137,6 +137,17 @@ export const appTranslations = {
       create: "Create project",
     },
     breadcrumb: { projects: "Projects" },
+    onboarding: {
+      steps: [
+        { title: "Your projects", body: "All your products live here. Create one per idea you're building." },
+        { title: "Tabs", body: "Each project has three modules: Canvas, Scope, and Log." },
+        { title: "Add & export", body: "Use the toolbar to add cards, features, or log entries. Export to Markdown or PDF anytime." },
+      ],
+      next: "Next",
+      back: "Back",
+      skip: "Skip",
+      done: "Let's go",
+    },
   },
 
   es: {
@@ -277,6 +288,17 @@ export const appTranslations = {
       create: "Crear proyecto",
     },
     breadcrumb: { projects: "Proyectos" },
+    onboarding: {
+      steps: [
+        { title: "Tus proyectos", body: "Todos tus productos viven aquí. Crea uno por cada idea que estés construyendo." },
+        { title: "Pestañas", body: "Cada proyecto tiene tres módulos: Canvas, Scope y Log." },
+        { title: "Agregar y exportar", body: "Usa la barra para agregar tarjetas, features o entradas. Exporta a Markdown o PDF cuando quieras." },
+      ],
+      next: "Siguiente",
+      back: "Atrás",
+      skip: "Omitir",
+      done: "Empezar",
+    },
   },
 } as const;
 

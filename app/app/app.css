@@ -185,6 +185,7 @@
 }
 
 .app-tab {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -204,7 +205,17 @@
 }
 
 .app-tab:hover { color: var(--fg); }
-.app-tab.active { color: var(--orange); border-bottom-color: var(--orange); font-weight: 500; }
+.app-tab.active { color: var(--orange); font-weight: 500; }
+
+.tab-indicator {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--orange);
+  border-radius: 2px 2px 0 0;
+}
 
 .tab-count {
   display: inline-flex;
@@ -229,14 +240,6 @@
   padding: 22px 24px;
 }
 
-.content-fade {
-  animation: contentFadeUp 0.2s ease-out both;
-}
-
-@keyframes contentFadeUp {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0);   }
-}
 
 /* ─── Idea Canvas ─── */
 .canvas-grid {
@@ -527,8 +530,8 @@
   border: 1px solid var(--border);
   border-radius: 11px;
   padding: 11px 12px;
-  cursor: pointer;
-  transition: box-shadow 0.14s, transform 0.14s;
+  cursor: grab;
+  transition: box-shadow 0.14s, transform 0.14s, opacity 0.14s, background 0.25s, border-color 0.25s;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -539,17 +542,87 @@
   transform: translateY(-1px);
 }
 
+.kanban-card.is-dragging {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.kanban-card.is-marking-done {
+  background: rgba(21, 128, 61, 0.04);
+  border-color: rgba(21, 128, 61, 0.28);
+  transform: none !important;
+}
+
+/* Name wrap + strikethrough line */
+.kanban-card-name-wrap {
+  position: relative;
+  overflow: hidden;
+}
+
 .kanban-card-name {
   font-size: 12.5px;
   color: var(--fg);
   font-weight: 450;
   line-height: 1.5;
+  display: block;
 }
 
+.kanban-strikethrough {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 1.5px;
+  background: var(--fg-3);
+  border-radius: 1px;
+  transform-origin: left center;
+}
+
+/* Card footer */
 .kanban-card-foot {
   display: flex;
   align-items: center;
   gap: 7px;
+}
+
+.kanban-card-foot-right {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+}
+
+/* Quick-done check button */
+.kanban-card-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: none;
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  color: transparent;
+  opacity: 0.4;
+  flex-shrink: 0;
+  transition: opacity 0.15s, background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.kanban-card:hover .kanban-card-check { opacity: 1; }
+.kanban-card-check:hover { border-color: #15803D; color: #15803D; background: rgba(21,128,61,0.08); }
+.kanban-card-check.is-done { opacity: 1; background: #15803D; border-color: #15803D; color: #fff; }
+
+/* DnD drop target + overlay */
+.kanban-col.drop-over {
+  background: rgba(240, 98, 10, 0.04);
+  border-color: rgba(240, 98, 10, 0.35);
+}
+
+.drag-overlay-card {
+  box-shadow: 0 10px 32px rgba(26, 23, 20, 0.2);
+  transform: rotate(1deg);
+  cursor: grabbing;
 }
 
 .kanban-pri {
@@ -855,6 +928,7 @@
 .app-overlay {
   position: fixed;
   inset: 0;
+  /* animation handled by Motion */
   background: rgba(26, 23, 20, 0.38);
   display: flex;
   align-items: flex-start;
@@ -862,12 +936,6 @@
   padding-top: 68px;
   z-index: 100;
   backdrop-filter: blur(8px);
-  animation: overlayIn 0.15s ease-out;
-}
-
-@keyframes overlayIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
 }
 
 .search-box {
@@ -943,7 +1011,6 @@
   justify-content: center;
   z-index: 100;
   backdrop-filter: blur(6px);
-  animation: overlayIn 0.15s ease-out;
 }
 
 .modal {
@@ -953,12 +1020,6 @@
   border: 1px solid var(--border);
   box-shadow: 0 24px 64px rgba(26, 23, 20, 0.15);
   padding: 26px;
-  animation: modalUp 0.2s ease-out;
-}
-
-@keyframes modalUp {
-  from { opacity: 0; transform: translateY(14px) scale(0.97); }
-  to   { opacity: 1; transform: none; }
 }
 
 .modal-head {
@@ -1065,6 +1126,20 @@
   font-weight: 600;
   letter-spacing: -0.025em;
   color: var(--fg);
+}
+
+/* ─── Spinner ─── */
+.app-spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--border);
+  border-top-color: var(--orange);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* ─── Empty state ─── */
@@ -1559,4 +1634,167 @@
   height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+/* ─── Map view ─── */
+.map-view {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: calc(100vh - 120px);
+}
+
+.map-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.map-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.map-connect-hint {
+  font-size: 12px;
+  color: #6D28D9;
+  font-style: italic;
+}
+
+.map-legend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--fg-3);
+}
+
+.map-legend-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 3px;
+}
+
+/* Spatial-cards canvas */
+.map-canvas {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg-warm);
+  cursor: grab;
+  user-select: none;
+}
+
+.map-canvas.is-panning {
+  cursor: grabbing;
+}
+
+/* World layer: receives pan+zoom transform */
+.map-world {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  pointer-events: none; /* world itself doesn't capture; children opt-in */
+}
+
+/* SVG for edges only */
+.map-edges-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+
+/* Shared absolute-position wrapper for all node types */
+.map-node-pos {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: all;
+}
+
+/* Item card (canvas / mvp / log) */
+.map-node-card {
+  width: 168px;
+  background: #fff;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  padding: 10px 12px 10px 11px;
+  box-shadow: 0 2px 8px rgba(26, 23, 20, 0.06);
+}
+
+.map-card-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--fg);
+  line-height: 1.45;
+  margin-bottom: 6px;
+}
+
+.map-card-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 500;
+  border-radius: 5px;
+  padding: 2px 7px;
+  letter-spacing: 0.02em;
+}
+
+/* Hub node */
+.map-node-hub {
+  min-width: 88px;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Root / project node */
+.map-node-root {
+  background: var(--fg);
+  color: #fff;
+  border-radius: 10px;
+  padding: 9px 18px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  cursor: default;
+}
+
+/* Connector handle dot – appears on card hover, drag to link */
+.map-conn-handle {
+  position: absolute;
+  right: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #6D28D9;
+  border: 2.5px solid white;
+  box-shadow: 0 2px 8px rgba(109, 40, 217, 0.35);
+  cursor: crosshair;
+  z-index: 10;
+}
+
+.map-hint {
+  font-size: 11px;
+  color: var(--fg-3);
+  text-align: center;
+  flex-shrink: 0;
+  margin: 0;
 }

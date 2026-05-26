@@ -2,9 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { AnimatePresence, motion } from "motion/react";
 import { useAppLang } from "./AppLanguageContext";
 import { Icons } from "@/components/ui/icons";
 import { createClient } from "@/lib/supabase/client";
+import { staggerContainer, fadeUp, fadeIn, modalSpring } from "@/lib/motion";
+import { useToast } from "./Toast";
 
 type FixedCardId = "problem" | "user" | "solution" | "context";
 const FIXED_SLOTS: FixedCardId[] = ["problem", "user", "solution", "context"];
@@ -62,6 +65,7 @@ interface IdeaCanvasProps {
 
 export function IdeaCanvas({ projectId, addTrigger, onCountChange }: IdeaCanvasProps) {
   const { t } = useAppLang();
+  const { toast } = useToast();
   const c = t.canvas;
   const supabase = createClient();
 
@@ -173,6 +177,7 @@ export function IdeaCanvas({ projectId, addTrigger, onCountChange }: IdeaCanvasP
       );
     }
     setEditingId(null);
+    toast("Card saved");
   };
 
   // ─── Badge ──────────────────────────────────────────────────────────────────
@@ -206,6 +211,7 @@ export function IdeaCanvas({ projectId, addTrigger, onCountChange }: IdeaCanvasP
         onCountChange?.(FIXED_SLOTS.length + next.length);
         return next;
       });
+      toast("Card added");
     }
     setShowAddModal(false);
   };
@@ -225,6 +231,7 @@ export function IdeaCanvas({ projectId, addTrigger, onCountChange }: IdeaCanvasP
       return next;
     });
     if (editingId === id) setEditingId(null);
+    toast("Card deleted", "info");
   };
 
   // ─── Badge popover ──────────────────────────────────────────────────────────
@@ -253,15 +260,18 @@ export function IdeaCanvas({ projectId, addTrigger, onCountChange }: IdeaCanvasP
 
   return (
     <>
-      <div className="canvas-grid">
+      <motion.div className="canvas-grid" variants={staggerContainer} initial="hidden" animate="visible">
         {/* Fixed cards */}
         {fixedCards.map((card) => {
           const isEditing  = editingId === card.slot;
           const popoverOpen = badgePopover === card.slot;
           return (
-            <div
+            <motion.div
               key={card.slot}
               className={`canvas-card${isEditing ? " editing" : ""}`}
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
               onClick={() => !isEditing && startEdit(card.slot, card.content)}
             >
               <div className="card-head">
@@ -303,7 +313,7 @@ export function IdeaCanvas({ projectId, addTrigger, onCountChange }: IdeaCanvasP
                   </div>
                 </>
               )}
-            </div>
+            </motion.div>
           );
         })}
 
@@ -312,9 +322,12 @@ export function IdeaCanvas({ projectId, addTrigger, onCountChange }: IdeaCanvasP
           const isEditing   = editingId === card.id;
           const popoverOpen = badgePopover === card.id;
           return (
-            <div
+            <motion.div
               key={card.id}
               className={`canvas-card canvas-card-custom${isEditing ? " editing" : ""}`}
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
               onClick={() => !isEditing && startEdit(card.id, card.content)}
             >
               <div className="card-head">
@@ -367,18 +380,20 @@ export function IdeaCanvas({ projectId, addTrigger, onCountChange }: IdeaCanvasP
                   </div>
                 </>
               )}
-            </div>
+            </motion.div>
           );
         })}
 
-        <button className="canvas-card-add" onClick={openAddModal}>
+        <motion.button className="canvas-card-add" variants={fadeUp} initial="hidden" animate="visible" onClick={openAddModal}>
           <Icons.Plus /><span>{c.addCard}</span>
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
 
-      {showAddModal && createPortal(
-        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+      {createPortal(
+        <AnimatePresence>
+          {showAddModal && (
+        <motion.div className="modal-overlay" variants={fadeIn} initial="hidden" animate="visible" exit="exit" onClick={() => setShowAddModal(false)}>
+          <motion.div className="modal" variants={modalSpring} initial="hidden" animate="visible" exit="exit" onClick={(e) => e.stopPropagation()}>
             <div className="modal-head">
               <span className="modal-title">{t.toolbar.newCard}</span>
               <button className="modal-close" onClick={() => setShowAddModal(false)}><Icons.Close /></button>
@@ -413,8 +428,10 @@ export function IdeaCanvas({ projectId, addTrigger, onCountChange }: IdeaCanvasP
               <button className="app-btn" onClick={() => setShowAddModal(false)}>{t.modal.cancel}</button>
               <button className="app-btn app-btn-primary" onClick={handleAddCard} disabled={!newCardName.trim()}>{c.addCard}</button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
+          )}
+        </AnimatePresence>
       , document.body)}
     </>
   );

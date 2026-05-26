@@ -49,7 +49,7 @@ export function Navbar() {
           <a className="btn btn-ghost-border nav-signin" href="/login">
             Sign in
           </a>
-          <a className="btn btn-primary" href="#cta">
+          <a className="btn btn-primary" href="/signup">
             {t.nav.startBuilding}
           </a>
         </div>

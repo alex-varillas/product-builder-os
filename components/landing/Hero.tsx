@@ -36,7 +36,7 @@ export function Hero() {
         </p>
 
         <div className="hero-ctas" data-fade="" data-fade-delay="3">
-          <a className="btn btn-primary btn-lg" href="#cta">
+          <a className="btn btn-primary btn-lg" href="/signup">
             {h.ctaPrimary} <Icons.Arrow />
           </a>
           <a

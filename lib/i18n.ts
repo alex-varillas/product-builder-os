@@ -43,7 +43,7 @@ export const translations = {
     steps: {
       badge: "How it works",
       h2: "Get started in 3 steps.",
-      subtext: "No setup wizard, no onboarding flow. Just open the app and start building.",
+      subtext: "No setup wizard, no friction. Create your first product in under a minute.",
       items: [
         {
           n: "01",
@@ -131,7 +131,7 @@ export const translations = {
     steps: {
       badge: "Cómo funciona",
       h2: "Empieza en 3 pasos.",
-      subtext: "Sin wizard de configuración, sin onboarding. Solo abre la app y empieza a construir.",
+      subtext: "Sin wizard de configuración, sin fricción. Crea tu primer producto en menos de un minuto.",
       items: [
         {
           n: "01",

@@ -103,7 +103,7 @@ export function OnboardingTour({ onDone }: OnboardingTourProps) {
             height={rect!.height + PAD * 2}
             rx={10}
             fill="none"
-            stroke="rgba(240,98,10,0.5)"
+            stroke="rgba(37,99,235,0.5)"
             strokeWidth={1.5}
           />
         )}
@@ -139,7 +139,7 @@ export function OnboardingTour({ onDone }: OnboardingTourProps) {
                   width: i === step ? 16 : 6,
                   height: 6,
                   borderRadius: 3,
-                  background: i === step ? "#F0620A" : "#E2DDD4",
+                  background: i === step ? "#2563EB" : "#E2DDD4",
                   transition: "width 0.2s, background 0.2s",
                 }}
               />

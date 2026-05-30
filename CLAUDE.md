@@ -12,11 +12,15 @@
 
 ## Qué es
 
-Herramienta open source para builders y founders. Convierte ideas dispersas en productos estructurados. No es un task manager ni un Notion. Se enfoca en tres cosas:
+Herramienta open source para builders y founders. Sistema operativo diario para construir productos con intención. No es un task manager ni un Notion. Combina un espacio de pensamiento de producto con una capa de foco diario:
 
-1. **Idea Canvas** — aterrizar la idea (problema, usuario, solución).
-2. **MVP Scope** — kanban de 4 columnas: Core MVP / Later / Not Now / To Validate.
-3. **Build Log** — documentar avances, decisiones y aprendizajes.
+1. **Home Dashboard** — métricas de la semana: horas por proyecto, calendario, streak, goal de foco.
+2. **Today Planner** — timeline visual 6am–10pm con bloques de tiempo arrastrables y navegación semanal.
+3. **Pomodoro** — timer de foco/descanso configurable, barra persistente, sesiones guardadas en DB.
+4. **Idea Canvas** — aterrizar la idea (problema, usuario, solución, contexto) + tarjetas custom.
+5. **MVP Scope** — kanban de 4 columnas: Core MVP / Later / Not Now / To Validate, drag & drop.
+6. **Build Log** — documentar avances, decisiones y aprendizajes con tipos y filtros.
+7. **Ideas Inbox** — capturar ideas en bruto sin vincularlas a un proyecto.
 
 **Momento aha:** el usuario ve el Project Overview completo y siente "Ahora sí tengo mi producto ordenado."
 
@@ -31,12 +35,14 @@ Next.js · TypeScript · Tailwind CSS · shadcn/ui · Supabase (Auth + PostgreSQ
 ## Estructura de carpetas
 
 ```
-app/(marketing)/     ← landing
-app/(auth)/          ← login, signup
-app/app/             ← dashboard, projects, settings
-components/          ← ui/, marketing/, dashboard/, idea-canvas/, mvp-scope/, build-log/
-lib/                 ← supabase/, utils/, validations/
-database/migrations/
+app/(landing)/       ← landing page + landing.css
+app/(auth)/          ← login, signup, auth.css
+app/app/             ← shell principal + settings
+components/app/      ← todas las vistas, cards y modales de la app (~28 archivos, organización plana)
+components/landing/  ← todas las secciones del landing
+components/ui/       ← primitivos compartidos (icons, AppSelect)
+lib/                 ← app-data, app-i18n, i18n, supabase/, pomodoro, time-blocks, preferences, analytics, motion, graph
+database/migrations/ ← 001–006
 ```
 
 ---
@@ -79,8 +85,12 @@ Subtítulos de cards y body text: gris neutro (`rgba(15,15,16,0.5)`). **No naran
 
 ---
 
-## v0.1 — Solo esto
+## v0.3 — Lo que está shipped
 
-Landing · Auth · Dashboard de proyectos · Crear proyecto · Project Overview · Idea Canvas · MVP Scope · Build Log · Export básico Markdown.
+✅ Landing · Auth · Home Dashboard · Today Planner · Pomodoro Timer
+✅ Idea Canvas · MVP Scope · Build Log · Ideas Inbox
+✅ Search global (Cmd+K) · Export Markdown · Settings · Onboarding tour
+✅ EN/ES i18n · Drag & drop (dnd-kit) · Animaciones (Motion) · Toast notifications
+✅ 6 migraciones DB: projects, canvas_cards, mvp_items, log_entries, inbox_ideas, time_blocks, pomodoro_sessions, user_preferences, node_links
 
-**Excluido del v0.1:** IA, colaboración, pagos, integraciones, app móvil, drag & drop, páginas públicas avanzadas, analytics, roles avanzados.
+**Excluido (próximas versiones):** IA, colaboración, pagos, app móvil, páginas públicas, export PDF funcional, UI de node links, email digests, roles avanzados.

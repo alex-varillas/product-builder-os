@@ -46,6 +46,7 @@ export type LogType = "shipped" | "decision" | "insight" | "idea";
 export interface LogEntry {
   id: string;
   date: string;
+  rawDate?: string; // "YYYY-MM-DD" for day grouping
   text: string;
   type: LogType;
 }
@@ -58,10 +59,10 @@ export interface SearchResult {
 }
 
 export const PROJECTS: Project[] = [
-  { id: "1", name: "BoardOS",        color: "#F0620A", version: "v0.2", stage: "draft",   desc: "Open-source workspace for builders and founders." },
-  { id: "2", name: "Reflow CRM",     color: "#6D28D9", version: "v0.1", stage: "draft",   desc: "Lightweight CRM built for solo freelancers." },
-  { id: "3", name: "LocalStack CLI", color: "#15803D", version: "v1.3", stage: "shipped", desc: "CLI tool for running AWS services locally." },
-  { id: "4", name: "Scratchpad",     color: "#A09D97", version: "",     stage: "",        desc: "Quick notes and rough ideas." },
+  { id: "1", name: "BoardOS",        color: "#F0620A", version: "", stage: "", desc: "Open-source workspace for builders and founders." },
+  { id: "2", name: "Reflow CRM",     color: "#6D28D9", version: "", stage: "", desc: "Lightweight CRM built for solo freelancers." },
+  { id: "3", name: "LocalStack CLI", color: "#15803D", version: "", stage: "", desc: "CLI tool for running AWS services locally." },
+  { id: "4", name: "Scratchpad",     color: "#A09D97", version: "", stage: "", desc: "Quick notes and rough ideas." },
 ];
 
 export const IDEA_CARDS: IdeaCard[] = [

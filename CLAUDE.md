@@ -55,6 +55,28 @@ database/migrations/
 
 Tipografía: **Geist** (sans) + **Geist Mono** (mono). Bordes: `rounded-[22px]` cards, `rounded-[12px]` botones. Sombras sutiles.
 
+> **Nota**: la paleta above aplica al **app** (`app/app/app.css`). El landing tiene su propio sistema independiente (ver abajo).
+
+---
+
+## Paleta del landing (design system independiente — beside.com + bindplane.com)
+
+`app/(landing)/landing.css` usa su propio sistema, inspirado en beside.com + bindplane.com. El app conserva los tokens warm.
+
+| Token | Valor |
+|---|---|
+| Fondo | `#ffffff` / stone alt `#F7F7F5` |
+| Texto | `#0F0F10` / secundario `rgba(15,15,16,0.5)` |
+| Acento naranja | `#F0620A` — **solo en eyebrows y badges** |
+| Bordes | `rgba(0,0,0,0.07)` universal |
+| Sombra card | `0 0 0 1px rgba(0,0,0,0.06), 0 2px 16px rgba(0,0,0,0.07)` |
+| Botón primario | `#111111` pill / hover `#000` |
+| Botón secundario | `border: 1px solid rgba(0,0,0,0.14)` / fondo blanco |
+| Radius cards | `20px` |
+| Spacing sección | `128px` |
+
+Subtítulos de cards y body text: gris neutro (`rgba(15,15,16,0.5)`). **No naranja en body text**, solo en eyebrows.
+
 ---
 
 ## v0.1 — Solo esto

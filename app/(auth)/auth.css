@@ -5,6 +5,10 @@
   justify-content: center;
   background: var(--bg);
   padding: 24px;
+  --orange:      #1A1714;
+  --orange-hover:#2E2823;
+  --orange-soft: rgba(26, 23, 20, 0.06);
+  --orange-ring: rgba(26, 23, 20, 0.18);
 }
 
 .auth-card {
@@ -25,10 +29,8 @@
 }
 
 .auth-logo-box {
-  width: 28px;
   height: 28px;
-  border-radius: 7px;
-  box-shadow: 0 2px 7px rgba(240, 98, 10, 0.32);
+  width: auto;
   flex-shrink: 0;
 }
 

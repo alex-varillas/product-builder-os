@@ -1,42 +1,39 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "./LanguageContext";
 
 export function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
   const { t } = useLanguage();
+  const [hidden, setHidden] = useState(false);
+  const lastY = useRef(0);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (y > lastY.current && y > 80) {
+        setHidden(true);
+      } else {
+        setHidden(false);
+      }
+      lastY.current = y;
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
-    <header className={`nav-wrap${scrolled ? " scrolled" : ""}`}>
-      <div className="container nav">
-        <a href="#" className="nav-brand">
-          <Image
-            src="/logo.png"
-            alt="BoardOS"
-            width={28}
-            height={28}
-            style={{ flexShrink: 0 }}
-            priority
-          />
-          <span>
-            Board<span style={{ color: "var(--fg-2)", fontWeight: 400 }}>OS</span>
-          </span>
+    <header className={`lnav${hidden ? " lnav--hidden" : ""}`}>
+      <div className="lnav-inner">
+        <a className="lnav-brand" href="/">
+          <Image src="/logo.png" alt="BoardOS" width={58} height={19} priority />
         </a>
 
-        <nav className="nav-links">
-          <a className="nav-link" href="#features">{t.nav.features}</a>
-          <a className="nav-link" href="#open-source">{t.nav.openSource}</a>
+        <nav className="lnav-links">
+          <a href="#workspace">{t.nav.workspace}</a>
+          <a href="#open-source">{t.nav.openSource}</a>
           <a
-            className="nav-link"
             href="https://github.com/alex-varillas/product-builder-os"
             target="_blank"
             rel="noreferrer"
@@ -45,11 +42,9 @@ export function Navbar() {
           </a>
         </nav>
 
-        <div className="nav-right">
-          <a className="btn btn-ghost-border nav-signin" href="/login">
-            Sign in
-          </a>
-          <a className="btn btn-primary" href="/signup">
+        <div className="lnav-actions">
+          <a className="lnav-signin" href="/login">Sign in</a>
+          <a className="btn-pill btn-pill-primary btn-pill-sm" href="/signup">
             {t.nav.startBuilding}
           </a>
         </div>

@@ -12,7 +12,7 @@ const COLORS = ["#F0620A", "#6D28D9", "#15803D", "#0D9488", "#2563EB", "#A09D97"
 interface EditProjectModalProps {
   project: Project;
   onClose: () => void;
-  onSave: (name: string, desc: string, color: string) => void;
+  onSave: (name: string, desc: string, color: string, version: string, stage: Project["stage"]) => void;
   onDelete: () => void;
 }
 
@@ -24,11 +24,13 @@ export function EditProjectModal({ project, onClose, onSave, onDelete }: EditPro
   const [name,       setName]       = useState(project.name);
   const [desc,       setDesc]       = useState(project.desc ?? "");
   const [color,      setColor]      = useState(project.color);
+  const [version,    setVersion]    = useState(project.version ?? "");
+  const [stage,      setStage]      = useState<Project["stage"]>(project.stage ?? "");
   const [confirming, setConfirming] = useState(false);
 
   const handleSave = () => {
     if (!name.trim()) return;
-    onSave(name.trim(), desc.trim(), color);
+    onSave(name.trim(), desc.trim(), color, version.trim(), stage);
   };
 
   return (
@@ -70,6 +72,26 @@ export function EditProjectModal({ project, onClose, onSave, onDelete }: EditPro
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
             />
+            <div className="edit-proj-meta">
+              <input
+                className="modal-input edit-proj-version"
+                placeholder="Version (e.g. v0.1)"
+                value={version}
+                onChange={(e) => setVersion(e.target.value)}
+              />
+              <div className="edit-proj-stage-pills">
+                {(["", "draft", "shipped"] as const).map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    className={`tb-preset-pill${stage === s ? " active" : ""}`}
+                    onClick={() => setStage(s)}
+                  >
+                    {s === "" ? "—" : p.stage[s]}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 

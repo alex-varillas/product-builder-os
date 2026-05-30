@@ -17,13 +17,10 @@ export function Footer() {
               <Image
                 src="/logo.png"
                 alt="BoardOS"
-                width={32}
-                height={32}
+                width={72}
+                height={24}
                 style={{ flexShrink: 0 }}
               />
-              <span>
-                Board<span style={{ color: "var(--fg-2)", fontWeight: 400 }}>OS</span>
-              </span>
             </a>
             <p className="tagline">{f.tagline}</p>
           </div>

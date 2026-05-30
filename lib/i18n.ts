@@ -1,54 +1,54 @@
 export const translations = {
   en: {
     nav: {
-      features: "Features",
+      workspace: "Workspace",
       openSource: "Open source",
       startBuilding: "Start building",
     },
     hero: {
-      badge: "Open source · v0.1",
+      badge: "· v0.3 · just shipped",
       h1: ["Organize your ideas.", "Define your MVP.", "Document every step."],
       subtext:
-        "BoardOS is an open-source workspace for builders and founders who want to move from scattered ideas to structured products, with more clarity.",
+        "A focused workspace where founders turn scattered thoughts into structured products, day by day.",
       ctaPrimary: "Start building",
-      ctaGithub: "View on GitHub",
-      proof: ["MIT licensed", "Self-host or hosted"],
+      ctaGithub: "Star on GitHub",
+      proof: ["Open source", "MIT license", "Self-hostable"],
     },
-    problem: {
-      badge: "The problem",
-      h2: "Building fast shouldn't mean building messy.",
-      subtext:
-        "Ideas, decisions and progress end up scattered across notes, chats, and loose docs. BoardOS brings the whole build process together, from first spark to documented progress.",
+    everything: {
+      badge: "everything you need",
+      h2: "Everything you need to ship.",
+      subtext: "Plan your week, define your scope, and document your progress — all in one focused workspace.",
+      items: [
+        { title: "Plan & focus", desc: "Block your week, run Pomodoro sessions, and protect deep work time." },
+        { title: "Define scope", desc: "4-column kanban to separate must-ship from nice-to-have." },
+        { title: "Build log", desc: "Document every decision, insight, and win as you build." },
+      ],
     },
-    modules: {
-      badge: "The system",
-      h2: "One system, three modules.",
-      subtext:
-        "Each module solves one sharp problem. Together they form the loop: idea → scope → progress → next idea.",
-      m1: {
-        tag: "Idea Canvas",
-        title: "Map the problem space.",
-        desc: "Capture the problem, user, solution and context on a single structured canvas. One source of truth for what you're building and why.",
-      },
-      m2: {
-        tag: "MVP Scope",
-        title: "Decide what ships first.",
-        desc: "Move features between In MVP and Later without losing the reasoning behind each decision.",
-      },
-      m3: {
-        tag: "Build Log",
-        title: "Document as you build.",
-        desc: "Log progress, decisions, learnings and next steps. A timestamped trail that turns every working session into a useful artifact.",
-      },
+    workspace: {
+      badge: "workspace",
+      h2: "Your daily operating system",
+      subtext: "Everything aligned around what you build today.",
+      home: { tag: "Project", title: "Project Overview", desc: "Idea Canvas, MVP Scope, and Build Log — everything about a product in one view." },
+      today: { tag: "Today", title: "Plan deep work", desc: "Schedule timeline blocks across the week. Navigate Mon–Sun freely." },
+      pomo: { tag: "Pomodoro", title: "Focus mode", desc: "Dedicated countdown with your durations. Dark mode included." },
+    },
+    perProject: {
+      badge: "per project",
+      h2: "Every product, structured",
+      subtext: "From rough idea to shipped feature, in one place.",
+      canvas: { tag: "Canvas", title: "Idea Canvas", desc: "Capture problem, user, solution, and context on one canvas.", bullets: ["Problem, user, solution & context", "Hypothesis and signal tags", "Inline editing, always visible"] as const },
+      scope: { tag: "Scope", title: "MVP Scope", desc: "Four-column kanban to separate essential from eventual.", bullets: ["Core MVP · Later · Not Now · To Validate", "Move items across lanes", "Focus on what ships first"] as const },
+      log: { tag: "Log", title: "Build Log", desc: "Document decisions and progress with timestamps.", bullets: ["shipped · idea · insight · decision types", "Timestamped entries", "Linked to each project"] as const },
     },
     steps: {
       badge: "How it works",
-      h2: "Get started in minutes.",
+      h2: "Get started in 3 steps.",
+      subtext: "No setup wizard, no onboarding flow. Just open the app and start building.",
       items: [
         {
           n: "01",
           title: "Create your product",
-          desc: "Name it, drop in the rough idea. No setup wizard. No friction. You're ready in under a minute.",
+          desc: "Name it, drop in the rough idea. No setup wizard. No friction. Ready in under a minute.",
         },
         {
           n: "02",
@@ -58,7 +58,7 @@ export const translations = {
         {
           n: "03",
           title: "Document progress",
-          desc: "Log decisions and learnings as you build. Your future self will thank your present one.",
+          desc: "Log decisions and learnings as you build. Your future self will thank you.",
         },
       ],
     },
@@ -73,7 +73,7 @@ export const translations = {
     },
     cta: {
       badge: "Ready when you are",
-      h2: "Start with one product idea.",
+      h2: "Build with intention.",
       subtext:
         "Turn your next idea into a clearer, more focused, well-documented product.",
       cta: "Start building",
@@ -83,60 +83,60 @@ export const translations = {
       docs: "Docs",
       license: "License (MIT)",
       copyright: "© 2026 BoardOS · Made for builders.",
-      status: "v0.1 · In active development",
+      status: "v0.3 · In active development",
     },
   },
 
   es: {
     nav: {
-      features: "Características",
+      workspace: "Workspace",
       openSource: "Código abierto",
       startBuilding: "Empezar",
     },
     hero: {
-      badge: "Open source · v0.1",
+      badge: "· v0.3 · recién lanzado",
       h1: ["Organiza tus ideas.", "Define tu MVP.", "Documenta cada paso."],
       subtext:
-        "BoardOS es un workspace open source para builders y founders que quieren pasar de ideas dispersas a productos estructurados, con más claridad.",
+        "Un workspace enfocado donde founders convierten pensamientos dispersos en productos estructurados, día a día.",
       ctaPrimary: "Empezar",
-      ctaGithub: "Ver en GitHub",
-      proof: ["Licencia MIT", "Self-host o hosted"],
+      ctaGithub: "Star en GitHub",
+      proof: ["Open source", "Licencia MIT", "Self-hostable"],
     },
-    problem: {
-      badge: "El problema",
-      h2: "Construir rápido no debería significar construir desordenado.",
-      subtext:
-        "Ideas, decisiones y avances quedan dispersos en notas, chats y documentos sueltos. BoardOS centraliza todo el proceso, desde la primera idea hasta el avance documentado.",
+    everything: {
+      badge: "todo lo que necesitas",
+      h2: "Todo lo que necesitas para lanzar.",
+      subtext: "Planifica tu semana, define tu scope y documenta tu avance — todo en un workspace enfocado.",
+      items: [
+        { title: "Planifica y enfócate", desc: "Bloquea tu semana, corre Pomodoros y protege el trabajo profundo." },
+        { title: "Define el scope", desc: "Kanban de 4 columnas para separar lo esencial de lo eventual." },
+        { title: "Build Log", desc: "Documenta cada decisión, aprendizaje y victoria mientras construyes." },
+      ],
     },
-    modules: {
-      badge: "El sistema",
-      h2: "Un sistema, tres módulos.",
-      subtext:
-        "Cada módulo resuelve un problema concreto. Juntos forman el loop: idea → scope → avance → siguiente idea.",
-      m1: {
-        tag: "Idea Canvas",
-        title: "Mapea el espacio del problema.",
-        desc: "Captura el problema, usuario, solución y contexto en un canvas estructurado. Una fuente de verdad sobre qué estás construyendo y por qué.",
-      },
-      m2: {
-        tag: "MVP Scope",
-        title: "Decide qué sale primero.",
-        desc: "Mueve features entre En MVP y Después sin perder el razonamiento detrás de cada decisión.",
-      },
-      m3: {
-        tag: "Build Log",
-        title: "Documenta mientras construyes.",
-        desc: "Registra avances, decisiones, aprendizajes y próximos pasos. Un historial con fecha que convierte cada sesión de trabajo en un artefacto útil.",
-      },
+    workspace: {
+      badge: "workspace",
+      h2: "Tu sistema operativo diario",
+      subtext: "Todo alineado alrededor de lo que construyes hoy.",
+      home: { tag: "Proyecto", title: "Project Overview", desc: "Idea Canvas, MVP Scope y Build Log — todo sobre un producto en una sola vista." },
+      today: { tag: "Today", title: "Planifica trabajo profundo", desc: "Programa bloques en la semana. Navega de lunes a domingo libremente." },
+      pomo: { tag: "Pomodoro", title: "Modo enfoque", desc: "Cuenta atrás dedicada con tus duraciones. Incluye modo oscuro." },
+    },
+    perProject: {
+      badge: "por proyecto",
+      h2: "Cada producto, estructurado",
+      subtext: "Desde la idea hasta el feature lanzado, en un solo lugar.",
+      canvas: { tag: "Canvas", title: "Idea Canvas", desc: "Captura problema, usuario, solución y contexto en un canvas.", bullets: ["Problema, usuario, solución y contexto", "Etiquetas de hipótesis y señal", "Edición en línea, siempre visible"] as const },
+      scope: { tag: "Scope", title: "MVP Scope", desc: "Kanban de cuatro columnas para separar lo esencial de lo eventual.", bullets: ["Core MVP · Later · Not Now · To Validate", "Mueve ítems entre columnas", "Prioridad sobre lo que se lanza primero"] as const },
+      log: { tag: "Log", title: "Build Log", desc: "Documenta decisiones y avances con marcas de tiempo.", bullets: ["shipped · idea · insight · decision: tipos", "Entradas con marca de tiempo", "Vinculadas a cada proyecto"] as const },
     },
     steps: {
       badge: "Cómo funciona",
-      h2: "Empieza en minutos.",
+      h2: "Empieza en 3 pasos.",
+      subtext: "Sin wizard de configuración, sin onboarding. Solo abre la app y empieza a construir.",
       items: [
         {
           n: "01",
           title: "Crea tu producto",
-          desc: "Ponle nombre, escribe la idea básica. Sin wizard de configuración. Sin fricción. Listo en menos de un minuto.",
+          desc: "Ponle nombre, escribe la idea básica. Sin wizard. Sin fricción. Listo en menos de un minuto.",
         },
         {
           n: "02",
@@ -161,7 +161,7 @@ export const translations = {
     },
     cta: {
       badge: "Listo cuando tú lo estés",
-      h2: "Empieza con una idea de producto.",
+      h2: "Construye con intención.",
       subtext:
         "Convierte tu próxima idea en un producto más claro, enfocado y bien documentado.",
       cta: "Empezar",
@@ -172,7 +172,7 @@ export const translations = {
       docs: "Documentación",
       license: "Licencia (MIT)",
       copyright: "© 2026 BoardOS · Hecho para builders.",
-      status: "v0.1 · En desarrollo activo",
+      status: "v0.3 · En desarrollo activo",
     },
   },
 } as const;

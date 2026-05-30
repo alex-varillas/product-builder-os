@@ -5,13 +5,14 @@ import { AnimatePresence, motion } from "motion/react";
 import { useAppLang } from "./AppLanguageContext";
 import { modalSpring, springSoft } from "@/lib/motion";
 
-const STORAGE_KEY = "boardos:onboarding:v1";
+const STORAGE_KEY = "boardos:onboarding:v3";
 
 // data-tour attribute values → map to their DOM selector
 const TOUR_TARGETS = [
+  "data-tour=\"home\"",
+  "data-tour=\"today\"",
+  "data-tour=\"pomodoro\"",
   "data-tour=\"projects\"",
-  "data-tour=\"tabs\"",
-  "data-tour=\"toolbar\"",
 ];
 
 interface Rect { top: number; left: number; width: number; height: number; }
@@ -188,5 +189,8 @@ export function OnboardingTour({ onDone }: OnboardingTourProps) {
 
 export function shouldShowOnboarding(): boolean {
   if (typeof window === "undefined") return false;
+  // Users who completed v1 or v2 don't need to see v3
+  if (localStorage.getItem("boardos:onboarding:v1") === "done") return false;
+  if (localStorage.getItem("boardos:onboarding:v2") === "done") return false;
   return localStorage.getItem(STORAGE_KEY) !== "done";
 }

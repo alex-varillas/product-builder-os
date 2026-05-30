@@ -50,7 +50,7 @@
 
 :root {
   /* shadcn vars mapped to PBOS palette */
-  --background: #FAFAF8;
+  --background: #F4F5F7;
   --foreground: #1A1714;
   --card: #FFFFFF;
   --card-foreground: #1A1714;
@@ -58,40 +58,40 @@
   --popover-foreground: #1A1714;
   --primary: #F0620A;
   --primary-foreground: #FFFFFF;
-  --secondary: #F3EFE7;
+  --secondary: #ECEEF1;
   --secondary-foreground: #1A1714;
-  --muted: #F3EFE7;
-  --muted-foreground: #6B6760;
-  --accent: #F3EFE7;
+  --muted: #ECEEF1;
+  --muted-foreground: #6B7280;
+  --accent: #ECEEF1;
   --accent-foreground: #1A1714;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: #E2DDD4;
-  --input: #E2DDD4;
-  --ring: rgba(240, 98, 10, 0.2);
+  --border: #E6E8EB;
+  --input: #E6E8EB;
+  --ring: rgba(26, 23, 20, 0.18);
   --radius: 0.625rem;
-  --sidebar: #FAFAF8;
+  --sidebar: #F4F5F7;
   --sidebar-foreground: #1A1714;
   --sidebar-primary: #F0620A;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F3EFE7;
+  --sidebar-accent: #ECEEF1;
   --sidebar-accent-foreground: #1A1714;
-  --sidebar-border: #E2DDD4;
-  --sidebar-ring: rgba(240, 98, 10, 0.2);
+  --sidebar-border: #E6E8EB;
+  --sidebar-ring: rgba(26, 23, 20, 0.18);
   --chart-1: #F0620A;
   --chart-2: #6D28D9;
   --chart-3: #15803D;
-  --chart-4: #6B6760;
+  --chart-4: #6B7280;
   --chart-5: #1A1714;
 
   /* PBOS extended tokens */
-  --bg: #FAFAF8;
-  --bg-warm: #F3EFE7;
-  --bg-stone: #EDE8DF;
-  --card-warm: #FDFCF9;
-  --border-soft: #EEEBE4;
+  --bg: #F4F5F7;
+  --bg-warm: #ECEEF1;
+  --bg-stone: #E4E6EA;
+  --card-warm: #FAFBFC;
+  --border-soft: #EEF0F2;
   --fg: #1A1714;
-  --fg-2: #6B6760;
-  --fg-3: #A09D97;
+  --fg-2: #6B7280;
+  --fg-3: #9CA3AF;
   --orange: #F0620A;
   --orange-hover: #D95508;
   --orange-soft: rgba(240, 98, 10, 0.08);
@@ -101,6 +101,15 @@
   --green: #15803D;
   --green-soft: rgba(21, 128, 61, 0.08);
   --green-ring: rgba(21, 128, 61, 0.25);
+  --brown:      #1F2227;
+  --brown-2:    #2A2E35;
+  --brown-soft: rgba(31,34,39,0.08);
+  --on-brown:   #F2F3F5;
+  --on-brown-2: #A8ADB6;
+
+  /* Easing curves (Emil Kowalski) */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 
   /* Shape */
   --r-btn: 12px;
@@ -111,6 +120,15 @@
   --section-y: clamp(80px, 10vw, 140px);
   --container: 1200px;
   --gap: 18px;
+}
+
+/* Hide scrollbars everywhere (preserve scroll functionality) */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  display: none;
 }
 
 @layer base {

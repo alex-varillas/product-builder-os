@@ -42,8 +42,7 @@ export default function LoginPage() {
     <div className="auth-shell">
       <div className="auth-card">
         <div className="auth-logo">
-          <Image src="/logo.png" alt="BoardOS" width={28} height={28} className="auth-logo-box" />
-          <span className="auth-logo-name">Board<em>OS</em></span>
+          <Image src="/logo.png" alt="BoardOS" width={84} height={28} className="auth-logo-box" />
         </div>
 
         <h1 className="auth-title">Welcome back</h1>

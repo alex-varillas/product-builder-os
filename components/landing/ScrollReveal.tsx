@@ -4,7 +4,7 @@ import { useEffect } from "react";
 
 export function ScrollReveal() {
   useEffect(() => {
-    const els = document.querySelectorAll("[data-fade]");
+    const els = document.querySelectorAll("[data-fade],[data-fade-scale],[data-fade-left],[data-fade-right]");
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
@@ -14,7 +14,7 @@ export function ScrollReveal() {
           }
         });
       },
-      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+      { threshold: 0.1, rootMargin: "0px 0px -48px 0px" }
     );
     els.forEach((el) => io.observe(el));
     return () => io.disconnect();

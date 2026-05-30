@@ -13,6 +13,25 @@ interface BuildLogProps {
   onAddEntry:  (text: string, type: LogType) => void;
 }
 
+function groupByDay(entries: LogEntry[]): { label: string; entries: LogEntry[] }[] {
+  const today = new Date().toISOString().slice(0, 10);
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const groups = new Map<string, LogEntry[]>();
+
+  for (const e of entries) {
+    const key = e.rawDate ?? e.date;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(e);
+  }
+
+  return Array.from(groups.entries()).map(([key, items]) => {
+    let label = items[0].date;
+    if (key === today) label = "Today";
+    else if (key === yesterday) label = "Yesterday";
+    return { label, entries: items };
+  });
+}
+
 export function BuildLog({ entries, onAddEntry }: BuildLogProps) {
   const { t } = useAppLang();
   const l = t.log;
@@ -30,6 +49,8 @@ export function BuildLog({ entries, onAddEntry }: BuildLogProps) {
   const handleKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if ((e.metaKey || e.ctrlKey) && e.key === "Enter") handleAdd();
   };
+
+  const groups = groupByDay(entries);
 
   return (
     <div>
@@ -72,20 +93,24 @@ export function BuildLog({ entries, onAddEntry }: BuildLogProps) {
       </div>
 
       <motion.div className="log-list" variants={staggerContainer} initial="hidden" animate="visible">
-        {entries.map((entry) => {
-          const cfg = LOG_TYPE_CFG[entry.type];
-          return (
-            <motion.div key={entry.id} className="log-item" variants={fadeUp} initial="hidden" animate="visible">
-              <div className="log-date">{entry.date}</div>
-              <div className="log-body">
-                <p className="log-text">{entry.text}</p>
-                <div className="log-type-badge" style={{ color: cfg.color }}>
-                  {l.types[entry.type]}
-                </div>
-              </div>
-            </motion.div>
-          );
-        })}
+        {groups.map((group) => (
+          <div key={group.label}>
+            <div className="log-day-header">{group.label}</div>
+            {group.entries.map((entry) => {
+              const cfg = LOG_TYPE_CFG[entry.type];
+              return (
+                <motion.div key={entry.id} className="log-item" variants={fadeUp} initial="hidden" animate="visible">
+                  <div className="log-body">
+                    <p className="log-text">{entry.text}</p>
+                    <div className="log-type-badge" style={{ color: cfg.color }}>
+                      {l.types[entry.type]}
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        ))}
       </motion.div>
     </div>
   );

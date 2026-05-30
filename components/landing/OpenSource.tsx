@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Icons } from "@/components/ui/icons";
 import { useLanguage } from "./LanguageContext";
+import { WordReveal } from "./WordReveal";
 
 const SNIPPET =
   "git clone https://github.com/alex-varillas/product-builder-os.git\nnpm install && npm run dev";
@@ -23,7 +24,7 @@ export function OpenSource() {
   return (
     <section className="section" id="open-source">
       <div className="container os-wrap">
-        <div className="os-left" data-fade="">
+        <div className="os-left" data-fade-left="">
           <span className="eyebrow">
             <span
               className="dot"
@@ -35,11 +36,10 @@ export function OpenSource() {
             {os.badge}
           </span>
 
-          <h2 className="h2">
-            {os.h2[0]}
-            <br />
-            {os.h2[1]}
-          </h2>
+          <div>
+            <WordReveal as="h2" className="h2" delay={0}>{os.h2[0]}</WordReveal>
+            <WordReveal as="h2" className="h2" delay={0.1}>{os.h2[1]}</WordReveal>
+          </div>
 
           <p className="lede">{os.subtext}</p>
 
@@ -79,8 +79,8 @@ export function OpenSource() {
           </div>
         </div>
 
-        <div data-fade="" data-fade-delay="2">
-          <div className="terminal">
+        <div data-fade-right="" data-fade-delay="1">
+          <div className="terminal terminal-brown">
             <div className="terminal-bar">
               <div className="tl-dots">
                 <span className="tl-dot r" />

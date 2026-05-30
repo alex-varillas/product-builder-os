@@ -2,6 +2,7 @@
 
 import { Icons } from "@/components/ui/icons";
 import { HeroMockup } from "./HeroMockup";
+import { WordReveal } from "./WordReveal";
 import { useLanguage } from "./LanguageContext";
 
 export function Hero() {
@@ -18,29 +19,31 @@ export function Hero() {
           </span>
         </div>
 
-        <h1 className="h1" data-fade="" data-fade-delay="1" style={{ maxWidth: "16ch" }}>
-          {h.h1[0]}
-          <br />
-          {h.h1[1]}
-          <br />
-          {h.h1[2]}
+        <h1
+          className="h1 hero-h1"
+          aria-label={`${h.h1[0]} ${h.h1[1]} ${h.h1[2]}`}
+          style={{ maxWidth: "14ch", margin: "0 auto", textAlign: "center" }}
+        >
+          <WordReveal as="span" className="hero-h1-line" delay={0.04}>{h.h1[0]}</WordReveal>
+          <WordReveal as="span" className="hero-h1-line" delay={0.18}>{h.h1[1]}</WordReveal>
+          <WordReveal as="span" className="hero-h1-line" delay={0.30}>{h.h1[2]}</WordReveal>
         </h1>
 
         <p
           className="lede"
           data-fade=""
           data-fade-delay="2"
-          style={{ textAlign: "center", maxWidth: "56ch" }}
+          style={{ textAlign: "center", maxWidth: "48ch" }}
         >
           {h.subtext}
         </p>
 
         <div className="hero-ctas" data-fade="" data-fade-delay="3">
-          <a className="btn btn-primary btn-lg" href="/signup">
+          <a className="btn-pill btn-pill-primary btn-pill-lg" href="/signup">
             {h.ctaPrimary} <Icons.Arrow />
           </a>
           <a
-            className="btn btn-secondary btn-lg"
+            className="btn-pill btn-pill-secondary btn-pill-lg"
             href="https://github.com/alex-varillas/product-builder-os"
             target="_blank"
             rel="noreferrer"
@@ -53,11 +56,21 @@ export function Hero() {
           <span>{h.proof[0]}</span>
           <span className="sep" />
           <span>{h.proof[1]}</span>
+          <span className="sep" />
+          <span>{h.proof[2]}</span>
         </div>
 
         <div className="hero-frame" data-fade="" data-fade-delay="5">
           <div className="mockup-shadow">
             <HeroMockup />
+          </div>
+          <div className="hero-mockup-pill">
+            <span className="hmp-dot" />
+            <span>Focus</span>
+            <span className="hmp-sep" />
+            <span className="hmp-timer">24:38 left</span>
+            <span className="hmp-sep" />
+            <span className="hmp-muted">BoardOS · Build log</span>
           </div>
         </div>
       </div>

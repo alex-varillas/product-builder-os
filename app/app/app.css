@@ -121,6 +121,12 @@
   margin: 10px 9px;
 }
 
+/* ─── Sidebar project row — 3-dot delete ─── */
+.sb-proj-menu-wrap { margin-left: auto; flex-shrink: 0; }
+.sb-proj-menu-btn  { opacity: 0; transition: opacity 0.15s; }
+.sb-proj-row:hover .sb-proj-menu-btn,
+.sb-proj-row.active .sb-proj-menu-btn { opacity: 1; }
+
 /* ─── Main area ─── */
 .app-main {
   flex: 1;
@@ -3403,60 +3409,68 @@
   color: var(--fg-3);
 }
 
-.streak-right {
+/* ─── Streak GitHub-style grid ─── */
+.streak-grid-wrap {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-
-.streak-week {
-  display: flex;
-  gap: 6px;
-}
-
-.streak-day {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   gap: 4px;
+  align-items: flex-start;
 }
 
-.streak-dow {
-  font-size: 9px;
+.streak-grid-header {
+  display: flex;
+  gap: 3px;
+}
+
+.streak-grid-dow {
+  width: 11px;
+  font-size: 8.5px;
   font-family: var(--font-geist-mono), monospace;
   color: var(--fg-3);
+  text-align: center;
   text-transform: uppercase;
 }
 
-.streak-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.streak-dot-done { background: var(--orange); }
-.streak-dot-empty { background: var(--bg-stone); border: 1px solid var(--border); }
-
-/* Streak sparkline bars */
-.streak-bars {
+.streak-grid {
   display: flex;
-  align-items: flex-end;
-  gap: 5px;
-  height: 52px;
-  padding-bottom: 2px;
+  flex-direction: column;
+  gap: 3px;
 }
 
-.streak-bar-col {
-  width: 10px;
+.streak-grid-row {
   display: flex;
-  align-items: flex-end;
+  gap: 3px;
 }
 
-.streak-bar-fill {
-  width: 100%;
-  border-radius: 3px 3px 0 0;
-  transition: height 0.3s ease;
+.streak-grid-cell {
+  width: 11px;
+  height: 11px;
+  border-radius: 2.5px;
+  background: var(--bg-stone);
+  border: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.streak-cell-active {
+  background: var(--orange);
+  border-color: transparent;
+}
+
+.streak-cell-today {
+  background: var(--bg-stone);
+  border: 1.5px solid var(--orange);
+}
+
+.streak-cell-future {
+  background: var(--bg);
+  border: 1px solid var(--border-soft);
+  opacity: 0.4;
+}
+
+.streak-cell-empty {
+  background: transparent;
+  border-color: transparent;
+  pointer-events: none;
 }
 
 /* ─── Pomodoro page ─── */

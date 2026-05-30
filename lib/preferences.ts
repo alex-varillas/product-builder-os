@@ -45,7 +45,10 @@ function dbRowToPrefs(row: Record<string, unknown>): UserPreferences {
 }
 
 export function usePreferences() {
-  const [prefs, setPrefsState] = useState<UserPreferences>(() => loadCache() ?? DEFAULT_PREFS);
+  // Always start with DEFAULT_PREFS — localStorage cache is not user-scoped
+  // so a new account on the same device would inherit previous user's settings.
+  // Supabase load below will override with real prefs for returning users.
+  const [prefs, setPrefsState] = useState<UserPreferences>(DEFAULT_PREFS);
   const loadedRef = useRef(false);
   const supabase = createClient();
 

@@ -296,24 +296,7 @@ function AppPageInner() {
     }
   }, [activeView, pomoTheme]);
 
-  // Demo fallback — shown when no real focus data exists, uses actual project colors
-  const DEMO_WEEK_FOCUS: ProjectFocusRow[] = projects.slice(0, 3).map((p, i) => ({
-    projectId: p.id,
-    projectName: p.name,
-    projectColor: p.color,
-    totalMin: [330, 195, 90][i] ?? 60,
-  }));
-  const now30 = new Date();
-  const DEMO_FOCUS_BY_DAY: DayFocusRow[] = [
-    ...[-12,-11,-9,-7,-6,-4,-3,-2,0].map((d) => {
-      const dt = new Date(now30); dt.setDate(dt.getDate() + d);
-      return { date: dt.toISOString().slice(0, 10), totalMin: 60 + Math.floor(Math.abs(d) * 20 + 45) };
-    }),
-  ];
-
-  const displayWeekFocus  = weekFocus.length  > 0 ? weekFocus  : DEMO_WEEK_FOCUS;
-  const displayFocusByDay = focusByDay.length > 0 ? focusByDay : DEMO_FOCUS_BY_DAY;
-  const displayTodayMin   = todayFocusMins;
+  const displayTodayMin = todayFocusMins;
 
   // ─── Load projects + user ─────────────────────────────────────────────────
 
@@ -330,14 +313,19 @@ function AppPageInner() {
       setUserName(name.split(" ")[0]);
     }
 
+    let isNewUser = false;
     if (data && data.length > 0) {
       setProjects(data.map(dbToProject));
     } else if (user) {
       const seeded = await seedBoardOS(supabase, user.id);
-      if (seeded) setProjects([dbToProject(seeded)]);
+      if (seeded) {
+        setProjects([dbToProject(seeded)]);
+        isNewUser = true;
+      }
     }
     setLoading(false);
-    setShowTour(shouldShowOnboarding());
+    // New users always see the tour regardless of localStorage state
+    setShowTour(isNewUser || shouldShowOnboarding());
   }, [supabase]);
 
   useEffect(() => {
@@ -744,6 +732,7 @@ function AppPageInner() {
         onLogout={handleLogout}
         collapsed={sidebarCollapsed}
         onToggleCollapse={toggleSidebar}
+        onDeleteProject={handleDeleteProject}
       />
 
       <MotionConfig reducedMotion="user">
@@ -825,8 +814,8 @@ function AppPageInner() {
               {activeView === "home" && (
                 <HomeView
                   userName={userName}
-                  weekFocus={displayWeekFocus}
-                  focusByDay={displayFocusByDay}
+                  weekFocus={weekFocus}
+                  focusByDay={focusByDay}
                   todayFocusMin={displayTodayMin}
                   dailyGoalMin={prefs.dailyFocusGoalMin}
                   selectedDate={selectedDate}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Icons } from "@/components/ui/icons";
@@ -17,10 +18,14 @@ interface SidebarProps {
   onLogout: () => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
+  onDeleteProject: (i: number) => void;
 }
 
-export function Sidebar({ activeView, activeProj, projects, onSelectView, onSelectProj, onLogout, collapsed, onToggleCollapse }: SidebarProps) {
+export function Sidebar({ activeView, activeProj, projects, onSelectView, onSelectProj, onLogout, collapsed, onToggleCollapse, onDeleteProject }: SidebarProps) {
   const { t } = useAppLang();
+  const [menuOpen,    setMenuOpen]    = useState<number | null>(null);
+  const [menuConfirm, setMenuConfirm] = useState<number | null>(null);
+  const closeMenu = () => { setMenuOpen(null); setMenuConfirm(null); };
 
   return (
     <aside className={`sidebar${collapsed ? " collapsed" : ""}`}>
@@ -86,12 +91,57 @@ export function Sidebar({ activeView, activeProj, projects, onSelectView, onSele
       {projects.map((p, i) => (
         <div
           key={p.id}
-          className={`sb-row${activeView === "project" && activeProj === i ? " active" : ""}`}
-          onClick={() => { onSelectView("project"); onSelectProj(i); }}
+          className={`sb-row sb-proj-row${activeView === "project" && activeProj === i ? " active" : ""}`}
+          onClick={menuOpen === i ? undefined : () => { onSelectView("project"); onSelectProj(i); }}
           title={collapsed ? p.name : undefined}
         >
           <div className="sb-proj-icon" style={{ background: p.color }}>{p.name.charAt(0).toUpperCase()}</div>
           <span className="sb-row-text">{p.name}</span>
+          {!collapsed && (
+            <div className="proj-card-menu-wrap sb-proj-menu-wrap" onClick={(e) => e.stopPropagation()}>
+              <button
+                className="proj-card-menu-btn sb-proj-menu-btn"
+                onClick={() => menuOpen === i ? closeMenu() : (setMenuOpen(i), setMenuConfirm(null))}
+              >
+                <Icons.Dots />
+              </button>
+              {menuOpen === i && (
+                <>
+                  <div className="proj-menu-backdrop" onClick={closeMenu} />
+                  <div className="proj-card-menu">
+                    {menuConfirm === i ? (
+                      <div className="proj-delete-body">
+                        <p className="proj-delete-text">Delete &ldquo;{p.name}&rdquo;?<br />This cannot be undone.</p>
+                        <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+                          <button
+                            className="proj-card-menu-item proj-card-menu-danger"
+                            style={{ flex: 1, textAlign: "center" }}
+                            onClick={() => { onDeleteProject(i); closeMenu(); }}
+                          >
+                            Delete
+                          </button>
+                          <button
+                            className="proj-card-menu-item"
+                            style={{ flex: 1, textAlign: "center" }}
+                            onClick={closeMenu}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        className="proj-card-menu-item proj-card-menu-danger"
+                        onClick={() => setMenuConfirm(i)}
+                      >
+                        Delete project
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
       ))}
 

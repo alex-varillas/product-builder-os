@@ -347,15 +347,20 @@ export function ExportModal({ project, mvpItems, logEntries, onClose }: ExportMo
 
         <div className="export-section-label">{ex.format}</div>
         <div className="export-format-row">
-          {(["markdown", "pdf"] as const).map((f) => (
-            <button
-              key={f}
-              className={`export-format-btn${format === f ? " active" : ""}`}
-              onClick={() => setFormat(f)}
-            >
-              {f === "markdown" ? ex.markdown : ex.pdf}
-            </button>
-          ))}
+          <button
+            className={`export-format-btn${format === "markdown" ? " active" : ""}`}
+            onClick={() => setFormat("markdown")}
+          >
+            {ex.markdown}
+          </button>
+          <button
+            className="export-format-btn"
+            disabled
+            style={{ opacity: 0.4, cursor: "not-allowed" }}
+            title="Coming soon"
+          >
+            {ex.pdf}
+          </button>
         </div>
 
         <div className="export-section-label">{ex.sections}</div>

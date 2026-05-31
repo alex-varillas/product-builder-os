@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "motion/react";
@@ -7,6 +8,7 @@ import { Icons } from "@/components/ui/icons";
 import { useAppLang } from "@/components/app/AppLanguageContext";
 import { AppLang } from "@/lib/app-i18n";
 import { usePreferences } from "@/lib/preferences";
+import { requestPermission, getPermission } from "@/lib/notifications";
 
 const LANGS: { id: AppLang; label: string; native: string }[] = [
   { id: "en", label: "English", native: "English" },
@@ -36,6 +38,19 @@ export default function SettingsPage() {
   const s = t.settings;
   const p = t.prefs;
   const { prefs, setPrefs } = usePreferences();
+
+  const [perm, setPerm] = useState<NotificationPermission>("default");
+  useEffect(() => { setPerm(getPermission()); }, []);
+
+  const toggleNotifications = async (on: boolean) => {
+    if (on) {
+      const result = await requestPermission();
+      setPerm(result);
+      setPrefs({ ...prefs, desktopNotifications: result === "granted" });
+    } else {
+      setPrefs({ ...prefs, desktopNotifications: false });
+    }
+  };
 
   return (
     <div className="settings-shell">
@@ -100,6 +115,36 @@ export default function SettingsPage() {
               onChange={(v) => setPrefs({ ...prefs, pomodoroSessionsToLongBreak: v })} />
             <NumInput label={p.dailyGoal} value={prefs.dailyFocusGoalMin} min={30} max={720} step={30} unit={p.min}
               onChange={(v) => setPrefs({ ...prefs, dailyFocusGoalMin: v })} />
+          </section>
+
+          <section className="settings-section">
+            <h2 className="settings-section-title">{p.notificationsTitle}</h2>
+            <div className="settings-row">
+              <div className="settings-row-info">
+                <div className="settings-row-label">{p.desktopNotifications}</div>
+                <div className="settings-row-desc">
+                  {perm === "denied" ? p.permissionDenied : p.desktopNotificationsDesc}
+                </div>
+              </div>
+              <div className="lang-pills">
+                <button
+                  className={`lang-pill${prefs.desktopNotifications ? " active" : ""}`}
+                  onClick={() => toggleNotifications(true)}
+                >
+                  {p.on}
+                </button>
+                <button
+                  className={`lang-pill${!prefs.desktopNotifications ? " active" : ""}`}
+                  onClick={() => toggleNotifications(false)}
+                >
+                  {p.off}
+                </button>
+              </div>
+            </div>
+            {prefs.desktopNotifications && (
+              <NumInput label={p.blockReminder} value={prefs.blockReminderMin} min={1} max={30} step={1} unit={p.min}
+                onChange={(v) => setPrefs({ ...prefs, blockReminderMin: v })} />
+            )}
           </section>
 
           <section className="settings-section">

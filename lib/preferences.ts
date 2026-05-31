@@ -9,6 +9,8 @@ export interface UserPreferences {
   pomodoroLongBreakMin: number;
   pomodoroSessionsToLongBreak: number;
   dailyFocusGoalMin: number;
+  desktopNotifications: boolean;
+  blockReminderMin: number;
 }
 
 export const DEFAULT_PREFS: UserPreferences = {
@@ -17,6 +19,8 @@ export const DEFAULT_PREFS: UserPreferences = {
   pomodoroLongBreakMin: 15,
   pomodoroSessionsToLongBreak: 4,
   dailyFocusGoalMin: 240,
+  desktopNotifications: false,
+  blockReminderMin: 5,
 };
 
 const CACHE_KEY = "boardos:prefs:v1";
@@ -41,6 +45,8 @@ function dbRowToPrefs(row: Record<string, unknown>): UserPreferences {
     pomodoroLongBreakMin:       (row.pomodoro_long_break as number)           ?? DEFAULT_PREFS.pomodoroLongBreakMin,
     pomodoroSessionsToLongBreak:(row.pomodoro_sessions_to_long_break as number) ?? DEFAULT_PREFS.pomodoroSessionsToLongBreak,
     dailyFocusGoalMin:          (row.daily_focus_goal_min as number)          ?? DEFAULT_PREFS.dailyFocusGoalMin,
+    desktopNotifications:       (row.desktop_notifications as boolean)        ?? DEFAULT_PREFS.desktopNotifications,
+    blockReminderMin:           (row.block_reminder_min as number)            ?? DEFAULT_PREFS.blockReminderMin,
   };
 }
 
@@ -83,6 +89,8 @@ export function usePreferences() {
       pomodoro_long_break: next.pomodoroLongBreakMin,
       pomodoro_sessions_to_long_break: next.pomodoroSessionsToLongBreak,
       daily_focus_goal_min: next.dailyFocusGoalMin,
+      desktop_notifications: next.desktopNotifications,
+      block_reminder_min: next.blockReminderMin,
     }, { onConflict: "user_id" });
   }, [supabase]);
 

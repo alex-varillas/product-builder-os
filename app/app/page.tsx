@@ -21,9 +21,10 @@ import { PomodoroBar } from "@/components/app/PomodoroBar";
 import { AppSkeleton } from "@/components/app/AppSkeleton";
 import { Icons } from "@/components/ui/icons";
 import { LogEntry, LogType, MVPItem, Project } from "@/lib/app-data";
-import { TimeBlock, DbTimeBlock, dbToTimeBlock, dayRange, weekRange, monthRange } from "@/lib/time-blocks";
+import { TimeBlock, DbTimeBlock, dbToTimeBlock, dayRange, weekRange, monthRange, todayRange } from "@/lib/time-blocks";
 import { usePomodoro, PomodoroKind, UsePomodoro } from "@/lib/pomodoro";
 import { usePreferences } from "@/lib/preferences";
+import { notify, getPermission } from "@/lib/notifications";
 import { useAppLang } from "@/components/app/AppLanguageContext";
 import { createClient } from "@/lib/supabase/client";
 import { fadeUp, springSoft } from "@/lib/motion";
@@ -259,6 +260,7 @@ function AppPageInner() {
     if (kind === "focus") {
       playBell(528);
       toast(t.pomodoro.focusDone);
+      if (prefs.desktopNotifications) notify(t.notif.focusDoneTitle, t.notif.focusDoneBody, "pomo-focus");
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const durationMin = prefs.pomodoroFocusMin;
@@ -277,8 +279,9 @@ function AppPageInner() {
     } else {
       playBell(440);
       toast(t.pomodoro.breakDone);
+      if (prefs.desktopNotifications) notify(t.notif.breakDoneTitle, t.notif.breakDoneBody, "pomo-break");
     }
-  }, [supabase, toast, t.pomodoro, prefs]);
+  }, [supabase, toast, t.pomodoro, t.notif, prefs]);
 
   const pomo = usePomodoro(handlePomodoroComplete);
 
@@ -421,6 +424,68 @@ function AppPageInner() {
       loadTodayFocusMins();
     }
   }, [activeView, loadHomeStats, loadTodayFocusMins]);
+
+  // ─── Time-block desktop reminders (foreground-only) ───────────────────────
+  const [todayBlocks, setTodayBlocks] = useState<TimeBlock[]>([]);
+  const firedRemindersRef = useRef<Set<string>>(new Set());
+  const reminderDayRef = useRef<string>(new Date().toISOString().slice(0, 10));
+  const prefsRef = useRef(prefs);
+  prefsRef.current = prefs;
+  const tRef = useRef(t);
+  tRef.current = t;
+  const todayBlocksRef = useRef(todayBlocks);
+  todayBlocksRef.current = todayBlocks;
+
+  const loadTodayBlocks = useCallback(async () => {
+    const { start, end } = todayRange();
+    const { data } = await supabase
+      .from("time_blocks")
+      .select("*")
+      .gte("start_at", start.toISOString())
+      .lte("start_at", end.toISOString())
+      .order("start_at");
+    setTodayBlocks(data ? data.map((r: DbTimeBlock) => dbToTimeBlock(r)) : []);
+  }, [supabase]);
+
+  // Reload today's blocks on mount and whenever any block is mutated.
+  useEffect(() => { loadTodayBlocks(); }, [loadTodayBlocks, timeBlocks]);
+
+  useEffect(() => {
+    const tick = () => {
+      const p = prefsRef.current;
+      if (!p.desktopNotifications || getPermission() !== "granted") return;
+
+      const today = new Date().toISOString().slice(0, 10);
+      if (reminderDayRef.current !== today) {
+        reminderDayRef.current = today;
+        firedRemindersRef.current.clear();
+      }
+
+      const now = Date.now();
+      const fired = firedRemindersRef.current;
+      const nt = tRef.current.notif;
+
+      for (const b of todayBlocksRef.current) {
+        if (b.done) continue;
+        const minsToStart = (b.startAt.getTime() - now) / 60000;
+        const minsToEnd = (b.endAt.getTime() - now) / 60000;
+        const startKey = `${b.id}:start`;
+        const endKey = `${b.id}:end`;
+
+        if (minsToStart > 0 && minsToStart <= p.blockReminderMin && !fired.has(startKey)) {
+          fired.add(startKey);
+          notify(nt.blockSoonTitle, nt.blockSoonBody(b.label, Math.max(1, Math.round(minsToStart))), startKey);
+        }
+        if (minsToEnd > 0 && minsToEnd <= 2 && !fired.has(endKey)) {
+          fired.add(endKey);
+          notify(nt.blockEndingTitle, nt.blockEndingBody(b.label), endKey);
+        }
+      }
+    };
+    tick();
+    const id = setInterval(tick, 30000);
+    return () => clearInterval(id);
+  }, []);
 
   // ─── Load items for active project ────────────────────────────────────────
 

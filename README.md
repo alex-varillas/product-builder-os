@@ -13,6 +13,7 @@ BoardOS is an open source workspace for indie builders and founders. It combines
 | **Home Dashboard** | Weekly build hours by project, monthly calendar heatmap, focus goal progress, build streak, and recent log entries. |
 | **Today Planner** | Visual 6 am–10 pm timeline with draggable, resizable time blocks. Navigate the week, snap to 15-min grid, mark blocks done. |
 | **Pomodoro Timer** | Focus/break timer with configurable durations, long-break cycles, session logging, and a persistent mini-bar across all views. |
+| **Desktop Notifications** | Optional desktop alerts when a Pomodoro ends or a scheduled time block is starting/ending. Opt-in from Settings. |
 | **Idea Canvas** | Four fixed slots (Problem, User, Solution, Context) + custom cards. Inline editing, badge system (core, hypothesis, signal, validated, draft, insight). |
 | **MVP Scope** | Four-column Kanban: Core MVP · Later · Not Now · To Validate. Drag-and-drop, priority (P1–P3), reasoning field, done toggle. |
 | **Build Log** | Typed entries: Shipped, Decision, Insight, Idea. Day-grouped feed, type filter chips, Cmd/Ctrl+Enter to save. |
@@ -69,6 +70,7 @@ database/migrations/003_node_links.sql        — cross-item linking table
 database/migrations/004_time_blocks.sql       — time_blocks for the Today planner
 database/migrations/005_pomodoro_sessions.sql — pomodoro_sessions tracking
 database/migrations/006_user_preferences.sql  — per-user settings (focus durations, daily goal)
+database/migrations/007_notification_prefs.sql — desktop notification settings
 ```
 
 All tables use Row Level Security — users only ever see their own data.
@@ -117,7 +119,7 @@ Go to **Ideas Inbox** and type anything — rough thoughts, links, fragments. Th
 
 ### Settings
 
-Adjust your Pomodoro durations (focus, break, long break), sessions before long break, daily focus goal, and UI language (English / Español).
+Adjust your Pomodoro durations (focus, break, long break), sessions before long break, daily focus goal, and UI language (English / Español). Enable **desktop notifications** to get alerts when a Pomodoro ends or a scheduled block is about to start/end — your browser will ask for permission the first time you turn it on.
 
 ### Search
 

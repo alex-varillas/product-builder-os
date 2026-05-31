@@ -314,22 +314,20 @@ export function HeroMockup() {
                   <div className="hm-fg-sub">consecutive days</div>
                 </div>
                 <div className="hm-streak-right">
-                  <div className="hm-sbars">
-                    {[32, 38, 34, 42, 36, 44, 31].map((h, i) => (
-                      <div key={i} className="hm-sbar" style={{
-                        height: `${h}px`,
-                        background: h > 30 ? "#1A1714" : "var(--bg-stone)",
-                      }} />
-                    ))}
-                  </div>
                   <div className="hm-streak-dow">
                     {["M","T","W","T","F","S","S"].map((d, i) => (
                       <span key={i} className="hm-streak-d">{d}</span>
                     ))}
                   </div>
-                  <div className="hm-streak-dots">
-                    {[32, 38, 34, 42, 36, 44, 31].map((h, i) => (
-                      <span key={i} className={`hm-streak-dot${h > 30 ? " on" : ""}`} />
+                  <div className="hm-streak-grid">
+                    {[0, 1, 2, 3].map((row) => (
+                      <div key={row} className="hm-streak-grid-row">
+                        {[0, 1, 2, 3, 4, 5, 6].map((col) => {
+                          const idx = row * 7 + col;
+                          // 9-day streak → last 9 cells active (bottom-right cluster)
+                          return <div key={col} className={`hm-streak-cell${idx >= 19 ? " on" : ""}`} />;
+                        })}
+                      </div>
                     ))}
                   </div>
                 </div>

@@ -1629,8 +1629,6 @@
 .hm-fg-val { font-size: 18px; font-weight: 700; color: var(--fg); letter-spacing: -0.02em; font-family: var(--font-geist-mono), monospace; }
 .hm-fg-sub { font-size: 10px; color: var(--fg-3); }
 .hm-streak-num { font-size: 24px; font-weight: 700; color: var(--fg); letter-spacing: -0.02em; font-family: var(--font-geist-mono), monospace; line-height: 1; }
-.hm-sbars { display: flex; align-items: flex-end; gap: 4px; height: 44px; flex-shrink: 0; }
-.hm-sbar { width: 7px; border-radius: 2px 2px 0 0; flex-shrink: 0; }
 
 /* Build Log */
 .hm-log { display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 0; overflow: hidden; }
@@ -1704,13 +1702,14 @@
   margin-top: 6px; cursor: default;
 }
 
-/* Streak right side */
+/* Streak right side — GitHub-style grid (mirrors the app's StreakCard) */
 .hm-streak-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
-.hm-streak-dow { display: flex; gap: 4px; }
-.hm-streak-d { font-family: var(--font-geist-mono), monospace; font-size: 7px; color: var(--fg-3); width: 10px; text-align: center; }
-.hm-streak-dots { display: flex; gap: 4px; }
-.hm-streak-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--bg-stone); border: 1px solid var(--border); }
-.hm-streak-dot.on { background: #1A1714; border-color: #1A1714; }
+.hm-streak-dow { display: flex; gap: 3px; }
+.hm-streak-d { font-family: var(--font-geist-mono), monospace; font-size: 7px; color: var(--fg-3); width: 9px; text-align: center; }
+.hm-streak-grid { display: flex; flex-direction: column; gap: 3px; }
+.hm-streak-grid-row { display: flex; gap: 3px; }
+.hm-streak-cell { width: 9px; height: 9px; border-radius: 2px; background: var(--bg-stone); border: 1px solid var(--border); }
+.hm-streak-cell.on { background: #F0620A; border-color: transparent; }
 
 /* Bottom pomodoro bar */
 .hm-pomo-bar {
